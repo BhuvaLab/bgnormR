@@ -1,0 +1,16 @@
+# R build artifacts
+*.Rcheck/
+*.tar.gz
+*.rdb
+*.rdx
+.Rhistory
+.RData
+.Ruserdata
+
+# Large test data files (>100 MB — cannot be stored in git)
+inst/extdata/20250903_TA4414_IO67_Scan1.er.qptiff
+inst/extdata/20250919_TA4414_HandE_Scan1.qptiff 2
+
+# macOS
+.DS_Store
+docs

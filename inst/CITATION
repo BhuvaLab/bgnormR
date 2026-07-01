@@ -1,0 +1,18 @@
+citEntry(
+  entry    = "Article",
+  title    = "bgnorm: a generative framework for background correction and normalisation of multiplex spatial proteomics",
+  author   = personList(
+    person("Malvika", "Kharbanda"),
+    person("Rafael", "Tubelleza"),
+    person("Agus", "Salim"),
+    person("Dharmesh D.", "Bhuva")
+  ),
+  journal  = "bioRxiv",
+  year     = "2025",
+  doi      = "10.1101/2025.placeholder",
+  textVersion = paste(
+    "Kharbanda M, Tubelleza R, Salim A, Bhuva DD (2025).",
+    "bgnorm: a generative framework for background correction and normalisation",
+    "of multiplex spatial proteomics. bioRxiv."
+  )
+)

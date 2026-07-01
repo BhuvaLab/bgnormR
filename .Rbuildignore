@@ -1,0 +1,8 @@
+^\.github$
+^Manuscript\.pdf$
+^bgnormR\.Rcheck$
+^bgnormR_.*\.tar\.gz$
+^\.Rbuildignore$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
