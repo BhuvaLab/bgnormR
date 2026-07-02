@@ -2,12 +2,17 @@
 % Please edit documentation in R/read_qptiff.R
 \name{metadata}
 \alias{metadata}
+\alias{metadata.QPTIFFImage}
 \title{Access the metadata embedded in a QPTIFFImage}
 \usage{
 metadata(x, ...)
+
+\method{metadata}{QPTIFFImage}(x, ...)
 }
 \arguments{
 \item{x}{A \code{\link{QPTIFFImage}}.}
+
+\item{...}{Unused.}
 }
 \value{
 A named list of metadata.
@@ -34,8 +39,8 @@ The returned list typically contains:
 }
 }
 \examples{
-\dontrun{
-img  <- read_qptiff("slide.qptiff", level = 3, lazy = TRUE)
+path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+img  <- read_qptiff(path)
 meta <- metadata(img)
 meta$format
 # Per-channel dye information
@@ -44,5 +49,4 @@ data.frame(
   protein = sapply(ch_meta, `[[`, "name"),
   dye     = sapply(ch_meta, function(ch) ch$dye_from_name \%||\% NA_character_)
 )
-}
 }

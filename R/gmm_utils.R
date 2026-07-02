@@ -103,8 +103,8 @@
 #' passes for the 3-component model so that the distribution lower tails never
 #' overwhelm the hard evidence of a low pixel value:
 #' \enumerate{
-#'   \item If argmax = 3 (Signal) but \code{x < means[2]} → demote to 2.
-#'   \item If class is now 2 (Non-specific) but \code{x < means[1]} → demote to 1.
+#'   \item If argmax = 3 (Signal) but \code{x < means[2]} -> demote to 2.
+#'   \item If class is now 2 (Non-specific) but \code{x < means[1]} -> demote to 1.
 #' }
 #' For the 2-component model the argmax is returned unchanged.
 #'
@@ -120,8 +120,8 @@
   G   <- length(means)
   cls <- max.col(posteriors, ties.method = "first")
   if (G == 3L) {
-    cls[cls == 3L & x < means[2L]] <- 2L   # Signal → Non-specific if below μ₂
-    cls[cls == 2L & x < means[1L]] <- 1L   # Non-specific → Background if below μ₁
+    cls[cls == 3L & x < means[2L]] <- 2L   # Signal -> Non-specific if below mean_2
+    cls[cls == 2L & x < means[1L]] <- 1L   # Non-specific -> Background if below mean_1
   }
   cls
 }

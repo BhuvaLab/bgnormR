@@ -22,7 +22,7 @@ objects.
 \examples{
 arr <- array(1:8, dim = c(2, 2, 2),
              dimnames = list(NULL, NULL, c("ch1", "ch2")))
-img <- .new_QPTIFFImage(arr)
+img <- as.QPTIFFImage(arr)
 names(img) <- c("DAPI", "CD3")
 names(img)
 }

@@ -9,8 +9,8 @@
 \description{
 Detects the repeating-page pattern:
 \itemize{
-  \item All identical → Polaris; channel count from ScanBands-i.
-  \item Repeating with period N → Fusion paged; N channels.
+  \item All identical -> Polaris; channel count from ScanBands-i.
+  \item Repeating with period N -> Fusion paged; N channels.
 }
 }
 \keyword{internal}

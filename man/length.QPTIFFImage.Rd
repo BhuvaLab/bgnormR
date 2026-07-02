@@ -6,6 +6,12 @@
 \usage{
 \method{length}{QPTIFFImage}(x)
 }
+\arguments{
+\item{x}{A \code{QPTIFFImage}.}
+}
+\value{
+Integer; the number of channels.
+}
 \description{
 Number of channels in a QPTIFFImage
 }

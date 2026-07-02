@@ -9,10 +9,10 @@
 #' @field threshold       For the 3-component (pixel-level) model: a single
 #'   numeric scalar giving the maximum adjusted intensity of Non-specific pixels.
 #'   Combined with the implicit class-1 boundary at 0, this encodes the full
-#'   classification: \code{adj == 0} → Background; \code{0 < adj <= threshold}
-#'   → Non-specific; \code{adj > threshold} → Signal.
+#'   classification: \code{adj == 0} -> Background; \code{0 < adj <= threshold}
+#'   -> Non-specific; \code{adj > threshold} -> Signal.
 #'   \code{NULL} for 2-component models (cell-level or no-signal fallback),
-#'   where the only boundary is 0 (adjusted > 0 → Signal).
+#'   where the only boundary is 0 (adjusted > 0 -> Signal).
 #' @field jsd        Jensen-Shannon Divergence QC metric between components 2
 #'   and 3.  \code{NA_real_} for no-signal channels.
 #' @field level      \code{"pixel"} or \code{"cell"}.
@@ -28,6 +28,7 @@
 #'   of points used to fit, giving a point-specific estimate comparable across
 #'   channels regardless of sample size.  \code{NULL} for cell-level results.
 #'
+#' @return Not applicable; documents the \code{BgnormResult} class structure.
 #' @name BgnormResult
 NULL
 

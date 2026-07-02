@@ -67,10 +67,10 @@ A \code{ggplot} object.
 \description{
 For a \code{\link{QPTIFFImage}}: renders up to 10 channels as an additive
 colour composite on a black background.  Each channel is assigned a distinct
-colour; its per-pixel intensity (min–max normalised to [0, 1]) drives the
-channel's contribution — high-intensity pixels appear fully saturated while
+colour; its per-pixel intensity (min-max normalised to [0, 1]) drives the
+channel's contribution - high-intensity pixels appear fully saturated while
 low-intensity pixels are transparent (black).  Channels that overlap in
-space produce mixed additive colours (e.g. cyan + red → white), matching
+space produce mixed additive colours (e.g. cyan + red -> white), matching
 the standard composite view in FIJI / napari.  When no \code{markers} are
 provided the first 10 channels (by index) are displayed.
 }

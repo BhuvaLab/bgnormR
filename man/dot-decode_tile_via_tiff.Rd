@@ -23,6 +23,6 @@ Integer matrix \code{[h, w]}, or \code{NULL} on error.
 \description{
 Wraps the raw compressed bytes in a minimal single-strip TIFF structure and
 decodes via \code{tiff::readTIFF()}.  This delegates all decompression
-(LZW, JPEG, PackBits, …) to libtiff without loading the entire source file.
+(LZW, JPEG, PackBits, etc.) to libtiff without loading the entire source file.
 }
 \keyword{internal}

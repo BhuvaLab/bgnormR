@@ -16,7 +16,7 @@ channels.}
 \item{level}{Integer, pyramid resolution level.  \code{1} = full
 resolution (default), \code{2} = half resolution, etc.}
 
-\item{as_integer}{Logical; return raw 16-bit integers (0–65535) rather than
+\item{as_integer}{Logical; return raw 16-bit integers (0-65535) rather than
 normalised \code{[0, 1]} doubles?  Default \code{TRUE}.}
 
 \item{lazy}{Logical; if \code{TRUE} return a
@@ -27,7 +27,7 @@ return a \code{\link{QPTIFFImage}}.}
 }
 \value{
 \describe{
-  \item{\code{lazy = FALSE}}{A \code{QPTIFFImage} — a 3-D numeric array
+  \item{\code{lazy = FALSE}}{A \code{QPTIFFImage} - a 3-D numeric array
     \code{[height, width, channels]} with class \code{c("QPTIFFImage",
     "array")}.  Channel names are stored in \code{dimnames(img)[[3]]}.
     Standard array subscripting works: \code{img[, , "DAPI"]} extracts a

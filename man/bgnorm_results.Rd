@@ -20,6 +20,12 @@ Returns the named list of \code{\link{BgnormResult}} objects attached to a
 \code{\link{QPTIFFImage}} by \code{\link{bgnorm_pixels}}, or \code{NULL} if
 the image has not been background-normalised.
 }
+\examples{
+path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+img <- read_qptiff(path)
+adj <- bgnorm_pixels(img, markers = names(img)[1])
+bgnorm_results(adj)
+}
 \seealso{
 \code{\link{bgnorm_pixels}}
 }

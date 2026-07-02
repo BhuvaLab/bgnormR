@@ -1,5 +1,5 @@
 ## ============================================================
-## plot_spatial.R  —  internal helpers for SPE scatter plots
+## plot_spatial.R  -  internal helpers for SPE scatter plots
 ##
 ## These helpers are called by plot_qptiff(), plot_pixel_classes(), and
 ## plot_distributions() when their first argument is a SpatialExperiment.
@@ -51,5 +51,5 @@
 }
 
 # ============================================================
-# plot_spatial_classes()  — GMM class scatter plot for SpatialExperiment
+# plot_spatial_classes()  - GMM class scatter plot for SpatialExperiment
 # ============================================================

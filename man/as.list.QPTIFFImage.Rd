@@ -6,6 +6,14 @@
 \usage{
 \method{as.list}{QPTIFFImage}(x, ...)
 }
+\arguments{
+\item{x}{A \code{QPTIFFImage}.}
+
+\item{...}{Unused.}
+}
+\value{
+A named list of 2-D matrices, one per channel.
+}
 \description{
 Convert a QPTIFFImage to a named list of 2-D channel matrices
 }

@@ -14,7 +14,7 @@ jsd_gaussians(mu1, sd1, mu2, sd2, n_grid = 2000L)
 \item{n_grid}{Number of evaluation points (default 2000).}
 }
 \value{
-Scalar JSD value in [0, log(2)] (nats).
+Scalar JSD value in [0, 1] (bits, log2 base).
 }
 \description{
 Computes JSD numerically on a dense grid, used as a signal-to-noise QC
@@ -23,8 +23,8 @@ signal component (3) of the bgnorm model.  Higher values indicate
 better separation and staining quality.
 }
 \examples{
-# Well-separated distributions → high JSD
+# Well-separated distributions -> high JSD
 jsd_gaussians(mu1 = 0, sd1 = 0.5, mu2 = 3, sd2 = 0.8)
-# Identical distributions → JSD = 0
+# Identical distributions -> JSD = 0
 jsd_gaussians(mu1 = 1, sd1 = 1, mu2 = 1, sd2 = 1)
 }

@@ -198,7 +198,7 @@ bgnorm_pixels <- function(img, channels = NULL, cofactor = 150,
   failed <- vapply(results, inherits, logical(1L), "error")
   if (any(failed)) {
     for (i in which(failed)) {
-      warning("Channel '", markers[i], "': bgnorm skipped — ",
+      warning("Channel '", markers[i], "': bgnorm skipped - ",
               conditionMessage(results[[i]]), call. = FALSE)
     }
     results <- results[!failed]

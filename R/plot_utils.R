@@ -1,5 +1,5 @@
 ## ============================================================
-## plot_utils.R  —  visualisation functions for bgnormR
+## plot_utils.R  -  visualisation functions for bgnormR
 ## ============================================================
 
 # Shared colour palette for GMM components (pixel classes + density lines)
@@ -83,7 +83,7 @@
     rng_global <- hi_global - lo_global
   }
 
-  # Additive RGB composite: each channel contributes intensity × channel_colour.
+  # Additive RGB composite: each channel contributes intensity x channel_colour.
   rgb_acc <- array(0, dim = c(H, W, 3L))
   for (i in seq_len(n_ch)) {
     mat <- if (.is_lazy_qptiff(img))
@@ -104,14 +104,14 @@
       mat <- pmin(pmax(mat, 0), 1)
     }
 
-    col_rgb <- grDevices::col2rgb(ch_colors[i]) / 255  # 3×1 matrix
+    col_rgb <- grDevices::col2rgb(ch_colors[i]) / 255  # 3x1 matrix
     rgb_acc[,,1L] <- rgb_acc[,,1L] + mat * col_rgb[1L]
     rgb_acc[,,2L] <- rgb_acc[,,2L] + mat * col_rgb[2L]
     rgb_acc[,,3L] <- rgb_acc[,,3L] + mat * col_rgb[3L]
   }
   rgb_acc <- pmin(rgb_acc, 1)  # clamp: additive overlap saturates toward white
 
-  # Build raster: H × W character matrix of hex colours (row 1 = image top)
+  # Build raster: H x W character matrix of hex colours (row 1 = image top)
   ras <- grDevices::as.raster(
     matrix(
       grDevices::rgb(as.vector(rgb_acc[,,1L]),
@@ -226,7 +226,7 @@
 # Internal SE / SpatialExperiment implementations
 # ============================================================
 
-# Route from SE/SPE for intensity plot — requires SPE for spatial coords
+# Route from SE/SPE for intensity plot - requires SPE for spatial coords
 .plot_qptiff_spe <- function(spe, markers = NULL, assay.type = "bgnorm",
                                palette = "magma", point_size = 1,
                                pixels = c(1024L, 1024L), flip_y = TRUE,
@@ -263,7 +263,7 @@
   p
 }
 
-# Route from SE/SPE for class plot — requires SPE for spatial coords
+# Route from SE/SPE for class plot - requires SPE for spatial coords
 .plot_pixel_classes_spe <- function(spe, markers = NULL, point_size = 1,
                                      pixels = c(1024L, 1024L), flip_y = TRUE,
                                      large_data_threshold = 10000L, ncol = NULL) {
@@ -316,7 +316,7 @@
   p
 }
 
-# Route from SE/SPE for distributions — uses precomputed histograms from
+# Route from SE/SPE for distributions - uses precomputed histograms from
 # metadata(se)$bgnorm_results (stored during bgnorm_sce()).
 .plot_distributions_se <- function(se, markers = NULL, ncol = NULL) {
   results <- S4Vectors::metadata(se)$bgnorm_results
@@ -519,10 +519,10 @@
 #'
 #' For a \code{\link{QPTIFFImage}}: renders up to 10 channels as an additive
 #' colour composite on a black background.  Each channel is assigned a distinct
-#' colour; its per-pixel intensity (min–max normalised to [0, 1]) drives the
-#' channel's contribution — high-intensity pixels appear fully saturated while
+#' colour; its per-pixel intensity (min-max normalised to [0, 1]) drives the
+#' channel's contribution - high-intensity pixels appear fully saturated while
 #' low-intensity pixels are transparent (black).  Channels that overlap in
-#' space produce mixed additive colours (e.g. cyan + red → white), matching
+#' space produce mixed additive colours (e.g. cyan + red -> white), matching
 #' the standard composite view in FIJI / napari.  When no \code{markers} are
 #' provided the first 10 channels (by index) are displayed.
 #'
@@ -569,9 +569,10 @@
 #' @seealso \code{\link{plot_pixel_classes}}, \code{\link{plot_distributions}},
 #'   \code{\link{bgnorm_pixels}}, \code{\link{bgnorm_sce}}
 #' @importFrom ggplot2 ggplot aes annotation_raster geom_point geom_raster
-#'   facet_wrap scale_colour_manual scale_fill_viridis_c scale_colour_viridis_c
-#'   guide_legend scale_y_reverse coord_equal coord_fixed theme_void theme
-#'   element_text element_blank element_rect labs
+#' @importFrom ggplot2 facet_wrap scale_colour_manual scale_fill_viridis_c
+#' @importFrom ggplot2 scale_colour_viridis_c guide_legend scale_y_reverse
+#' @importFrom ggplot2 coord_equal coord_fixed theme_void theme
+#' @importFrom ggplot2 element_text element_blank element_rect labs
 #' @importFrom grDevices col2rgb rgb as.raster
 #' @importFrom SpatialExperiment spatialCoords spatialCoordsNames
 #' @importFrom SummarizedExperiment assay colData
@@ -648,19 +649,17 @@ plot_qptiff <- function(x, markers = NULL, resolution = 1L,
 #' @seealso \code{\link{plot_qptiff}}, \code{\link{plot_distributions}},
 #'   \code{\link{bgnorm_pixels}}, \code{\link{bgnorm_sce}}
 #' @importFrom ggplot2 ggplot aes geom_raster facet_wrap scale_fill_manual
-#'   scale_colour_manual scale_y_reverse coord_equal theme_void theme
-#'   element_text element_rect
+#' @importFrom ggplot2 scale_colour_manual scale_y_reverse coord_equal
+#' @importFrom ggplot2 theme_void theme element_text element_rect
 #' @importFrom SpatialExperiment spatialCoords spatialCoordsNames
 #' @importFrom SummarizedExperiment colData
 #' @importFrom grid unit
 #' @export
 #' @examples
-#' \donttest{
 #' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' res  <- bgnorm_pixels(img, sample_prop = 0.1)
 #' plot_pixel_classes(res, markers = c("PanCK", "CD20"))
-#' }
 plot_pixel_classes <- function(x, markers = NULL,
                                 resolution = 1L,
                                 point_size = 1,
@@ -719,18 +718,16 @@ plot_pixel_classes <- function(x, markers = NULL,
 #'
 #' @seealso \code{\link{plot_qptiff}}, \code{\link{plot_pixel_classes}},
 #'   \code{\link{bgnorm_pixels}}, \code{\link{bgnorm_sce}}
-#' @importFrom ggplot2 ggplot aes geom_rect geom_line
-#'   facet_wrap scale_colour_manual scale_fill_manual labs theme_bw theme
-#'   element_text element_blank element_line
+#' @importFrom ggplot2 ggplot aes geom_rect geom_line facet_wrap
+#' @importFrom ggplot2 scale_colour_manual scale_fill_manual labs theme_bw
+#' @importFrom ggplot2 theme element_text element_blank element_line
 #' @importFrom SummarizedExperiment assay colData
 #' @export
 #' @examples
-#' \donttest{
 #' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' res  <- bgnorm_pixels(img, sample_prop = 0.1)
 #' plot_distributions(res)
-#' }
 plot_distributions <- function(x, results = NULL, markers = NULL, ncol = NULL) {
   if (inherits(x, "SummarizedExperiment"))
     .plot_distributions_se(x, markers = markers, ncol = ncol)
@@ -776,19 +773,18 @@ plot_distributions <- function(x, results = NULL, markers = NULL, ncol = NULL) {
 #'   on the heatmap?  Circle area is proportional to the tissue positivity
 #'   (\eqn{\pi_3 / (\pi_2 + \pi_3)} for three-component models;
 #'   \eqn{\pi_2} for two-component models).  Circle colour indicates JSD
-#'   quality: red (JSD < 0.1, low), orange (0.1–0.2, moderate), white
+#'   quality: red (JSD < 0.1, low), orange (0.1-0.2, moderate), white
 #'   (\eqn{\geq} 0.2, good).  Default \code{TRUE}.
 #'
 #' @return A \code{ggplot} object.
 #'
 #' @seealso \code{\link{bgnorm_pixels}}, \code{\link{bgnorm_sce}}
 #' @importFrom ggplot2 ggplot aes geom_tile geom_point scale_fill_viridis_c
-#'   scale_colour_manual scale_size_area scale_x_discrete labs theme_minimal
-#'   theme element_text element_blank
+#' @importFrom ggplot2 scale_colour_manual scale_size_area scale_x_discrete
+#' @importFrom ggplot2 labs theme_minimal theme element_text element_blank
 #' @importFrom stats hclust dist
 #' @export
 #' @examples
-#' \donttest{
 #' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' res  <- bgnorm_pixels(img, sample_prop = 0.1)
@@ -796,7 +792,6 @@ plot_distributions <- function(x, results = NULL, markers = NULL, ncol = NULL) {
 #'
 #' # Multi-sample comparison (pass a named list)
 #' plot_jsd_heatmap(list(sample_A = res, sample_B = res))
-#' }
 plot_jsd_heatmap <- function(results, cluster_rows = TRUE, cluster_cols = TRUE,
                               show_tissue_positivity = TRUE) {
   if (inherits(results, "SummarizedExperiment")) {

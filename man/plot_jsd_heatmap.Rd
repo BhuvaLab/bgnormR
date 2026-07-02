@@ -27,7 +27,7 @@ a named list of such lists (multiple samples), a named list of
 on the heatmap?  Circle area is proportional to the tissue positivity
 (\eqn{\pi_3 / (\pi_2 + \pi_3)} for three-component models;
 \eqn{\pi_2} for two-component models).  Circle colour indicates JSD
-quality: red (JSD < 0.1, low), orange (0.1–0.2, moderate), white
+quality: red (JSD < 0.1, low), orange (0.1-0.2, moderate), white
 (\eqn{\geq} 0.2, good).  Default \code{TRUE}.}
 }
 \value{
@@ -43,7 +43,6 @@ a named list of such lists (multiple samples), or a
 \code{metadata(results)$bgnorm_results}.
 }
 \examples{
-\donttest{
 path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 img  <- read_qptiff(path)
 res  <- bgnorm_pixels(img, sample_prop = 0.1)
@@ -51,7 +50,6 @@ plot_jsd_heatmap(res)
 
 # Multi-sample comparison (pass a named list)
 plot_jsd_heatmap(list(sample_A = res, sample_B = res))
-}
 }
 \seealso{
 \code{\link{bgnorm_pixels}}, \code{\link{bgnorm_sce}}

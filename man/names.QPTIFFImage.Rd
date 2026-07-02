@@ -6,6 +6,12 @@
 \usage{
 \method{names}{QPTIFFImage}(x)
 }
+\arguments{
+\item{x}{A \code{QPTIFFImage}.}
+}
+\value{
+Character vector of channel names, or \code{NULL}.
+}
 \description{
 Channel names of a QPTIFFImage (third-dimension names of the array)
 }

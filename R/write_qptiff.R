@@ -39,7 +39,6 @@
 #' @seealso \code{\link{read_qptiff}}, \code{\link{bgnorm_pixels}}
 #' @export
 #' @examples
-#' \donttest{
 #' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' res  <- bgnorm_pixels(img, sample_prop = 0.1)
@@ -50,7 +49,6 @@
 #' img2 <- read_qptiff(out)
 #' names(img2)
 #' dim(img2)
-#' }
 write_qptiff <- function(x, path) {
   if (!inherits(x, "QPTIFFImage"))
     stop("'x' must be a QPTIFFImage.")
@@ -150,9 +148,9 @@ write_qptiff <- function(x, path) {
 # with the JSON metadata built by write_qptiff().
 #
 # Layout per page:
-#   1. Pixel data  (H × W × 2 bytes, row-major uint16 LE)
+#   1. Pixel data  (H x W x 2 bytes, row-major uint16 LE)
 #   2. Description string (null-terminated ASCII)
-#   3. IFD         (2 + 11 × 12 + 4 = 138 bytes)
+#   3. IFD         (2 + 11 x 12 + 4 = 138 bytes)
 #
 # The file header offset points to the first page's IFD.
 

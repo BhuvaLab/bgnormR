@@ -1,4 +1,5 @@
 ^\.github$
+^\.claude$
 ^Manuscript\.pdf$
 ^bgnormR\.Rcheck$
 ^bgnormR_.*\.tar\.gz$

@@ -23,7 +23,7 @@ The already-parsed \code{fluorophore} field is used as the primary signal;
 a regex against known dye naming conventions serves as a fallback.
 }
 \details{
-Handles multi-hyphen names correctly: \code{"HLA-A-Atto550"} →
+Handles multi-hyphen names correctly: \code{"HLA-A-Atto550"} ->
 protein \code{"HLA-A"}, dye \code{"Atto550"}.
 }
 \keyword{internal}

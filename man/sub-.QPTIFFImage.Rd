@@ -6,14 +6,28 @@
 \usage{
 \method{[}{QPTIFFImage}(x, i, j, k, drop = FALSE)
 }
+\arguments{
+\item{x}{A \code{QPTIFFImage}.}
+
+\item{i}{Row indices (spatial), or missing.}
+
+\item{j}{Column indices (spatial), or missing.}
+
+\item{k}{Channel indices (numeric or character), or missing.}
+
+\item{drop}{Ignored; the result is always a 3-D \code{QPTIFFImage}.}
+}
+\value{
+A \code{QPTIFFImage}.
+}
 \description{
 Standard 3-D array subscripting with all missing-subscript combinations
 supported.  The result is \emph{always} a \code{QPTIFFImage}, including
 when a single channel is selected.  To extract a plain 2-D matrix for one
 channel, use \code{unclass(img[, , "DAPI"])[, , 1L]}.
 \itemize{
-  \item \code{img[, , "DAPI"]} — single channel (returns a 1-channel QPTIFFImage)
-  \item \code{img[, , c("DAPI","CD3")]} — multi-channel sub-image
-  \item \code{img[1:512, 1:512, ]} — spatial crop
+  \item \code{img[, , "DAPI"]} - single channel (returns a 1-channel QPTIFFImage)
+  \item \code{img[, , c("DAPI","CD3")]} - multi-channel sub-image
+  \item \code{img[1:512, 1:512, ]} - spatial crop
 }
 }

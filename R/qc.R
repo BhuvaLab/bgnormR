@@ -12,9 +12,9 @@
 #' @return Scalar JSD value in [0, 1] (bits, log2 base).
 #' @export
 #' @examples
-#' # Well-separated distributions → high JSD
+#' # Well-separated distributions -> high JSD
 #' jsd_gaussians(mu1 = 0, sd1 = 0.5, mu2 = 3, sd2 = 0.8)
-#' # Identical distributions → JSD = 0
+#' # Identical distributions -> JSD = 0
 #' jsd_gaussians(mu1 = 1, sd1 = 1, mu2 = 1, sd2 = 1)
 jsd_gaussians <- function(mu1, sd1, mu2, sd2, n_grid = 2000L) {
   stopifnot(is.numeric(c(mu1, sd1, mu2, sd2)), sd1 > 0, sd2 > 0)

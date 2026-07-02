@@ -35,14 +35,15 @@ NULL
 #' DEFLATE/zlib decompression handled by R's built-in \code{memDecompress}.
 #' Unsupported compression types fall back to \code{tiff::readTIFF}.
 #'
-#' Do not construct this class directly; use \code{\link{read_qptiff_delayed}}.
+#' Do not construct this class directly; use
+#' \code{\link{read_qptiff}(path, lazy = TRUE)}.
 #'
 #' @slot filepath   Absolute path to the QPTIFF file.
 #' @slot .dim       Integer vector \code{[H, W, C]}.
 #' @slot .dimnames  List of dimnames; element 3 holds channel names.
 #' @slot page_layouts List of per-channel page layout objects (one per channel)
 #'   each containing the TIFF structural metadata needed to fetch that page.
-#' @slot dtype      Character, \code{"integer"} (raw 16-bit values 0–65535)
+#' @slot dtype      Character, \code{"integer"} (raw 16-bit values 0-65535)
 #'   or \code{"double"} (normalised to [0, 1]).
 #' @slot metadata   List; rich QPI metadata as returned by \code{.parse_qpi_xml}.
 #' @slot level      Integer; pyramid resolution level (1 = full resolution).
@@ -333,7 +334,7 @@ setMethod("extract_array", "QPTIFFArraySeed", function(x, index) {
   if (!is.null(layout$strip_offsets))
     return(.read_stripped_page(path, layout, h, w, bps, compression, rows, cols))
 
-  # Fallback: no tile/strip layout available — use tiff package
+  # Fallback: no tile/strip layout available - use tiff package
   .read_page_fallback(path, layout, rows, cols)
 }
 
@@ -481,7 +482,7 @@ setMethod("extract_array", "QPTIFFArraySeed", function(x, index) {
   }
 
   warning("Loading all QPTIFF pages to read page ", pg_idx,
-          " (unsupported compression — install 'ijtiff' for efficient single-page reads).")
+          " (unsupported compression - install 'ijtiff' for efficient single-page reads).")
   all_pages <- tiff::readTIFF(path, all = TRUE, as.is = TRUE)
   if (pg_idx > length(all_pages))
     stop("Page index ", pg_idx, " exceeds page count ", length(all_pages))
@@ -527,7 +528,7 @@ setMethod("extract_array", "QPTIFFArraySeed", function(x, index) {
 #'
 #' Wraps the raw compressed bytes in a minimal single-strip TIFF structure and
 #' decodes via \code{tiff::readTIFF()}.  This delegates all decompression
-#' (LZW, JPEG, PackBits, …) to libtiff without loading the entire source file.
+#' (LZW, JPEG, PackBits, etc.) to libtiff without loading the entire source file.
 #'
 #' @param raw_bytes   Raw vector of compressed tile/strip bytes.
 #' @param w,h         Tile/strip width and height in pixels.
@@ -571,7 +572,7 @@ setMethod("extract_array", "QPTIFFArraySeed", function(x, index) {
   )
   if (is.null(mat)) return(NULL)
   if (length(dim(mat)) == 3L) mat <- mat[, , 1L]           # drop colour dim
-  # tiff may normalise 16-bit to [0,1] for some compressors — restore raw range
+  # tiff may normalise 16-bit to [0,1] for some compressors - restore raw range
   if (is.double(mat) && bps == 16L && max(mat, na.rm = TRUE) <= 1.0)
     mat <- round(mat * 65535)
   if (!is.matrix(mat)) return(NULL)

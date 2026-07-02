@@ -52,7 +52,6 @@ installed, the \code{<bgnorm>} element is omitted.
 }
 
 \examples{
-\donttest{
 path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 img  <- read_qptiff(path)
 res  <- bgnorm_pixels(img, sample_prop = 0.1)
@@ -63,7 +62,6 @@ write_qptiff(res, out)
 img2 <- read_qptiff(out)
 names(img2)
 dim(img2)
-}
 }
 \seealso{
 \code{\link{read_qptiff}}, \code{\link{bgnorm_pixels}}

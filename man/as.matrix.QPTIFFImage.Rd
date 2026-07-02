@@ -25,7 +25,7 @@ select one first.
 \examples{
 arr <- array(1:12, dim = c(3, 4, 1),
              dimnames = list(NULL, NULL, "DAPI"))
-img <- .new_QPTIFFImage(arr)
+img <- as.QPTIFFImage(arr)
 m   <- as.matrix(img)
 dim(m)          # 3 x 4
 attr(m, "channel")  # "DAPI"

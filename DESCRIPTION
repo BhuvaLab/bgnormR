@@ -23,7 +23,7 @@ Description: Implements bgnorm, a generative statistical framework for
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-    R (>= 4.4.0)
+    R (>= 4.6.0)
 Imports:
     mclust (>= 5.4),
     SummarizedExperiment (>= 1.28.0),
@@ -32,7 +32,6 @@ Imports:
     DelayedArray (>= 0.26.0),
     S4Vectors,
     ggplot2 (>= 3.4.0),
-    patchwork,
     scales,
     stats,
     utils,

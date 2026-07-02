@@ -45,7 +45,8 @@ fetched per-tile (when the image is tiled) or per-strip with
 DEFLATE/zlib decompression handled by R's built-in \code{memDecompress}.
 Unsupported compression types fall back to \code{tiff::readTIFF}.
 
-Do not construct this class directly; use \code{\link{read_qptiff_delayed}}.
+Do not construct this class directly; use
+\code{\link{read_qptiff}(path, lazy = TRUE)}.
 }
 \section{Slots}{
 
@@ -59,7 +60,7 @@ Do not construct this class directly; use \code{\link{read_qptiff_delayed}}.
 \item{\code{page_layouts}}{List of per-channel page layout objects (one per channel)
 each containing the TIFF structural metadata needed to fetch that page.}
 
-\item{\code{dtype}}{Character, \code{"integer"} (raw 16-bit values 0–65535)
+\item{\code{dtype}}{Character, \code{"integer"} (raw 16-bit values 0-65535)
 or \code{"double"} (normalised to [0, 1]).}
 
 \item{\code{metadata}}{List; rich QPI metadata as returned by \code{.parse_qpi_xml}.}

@@ -5,10 +5,10 @@
 ## (rtubelleza/bioio-tifffile, feature/read-qptiffs-rich-reduce-ome).
 ##
 ## Handles three live PerkinElmer / Akoya format variants:
-##   brightfield     – H&E / IHC; RGB pages
-##   polaris_scanband – Vectra / Polaris / OPAL; channel metadata in
+##   brightfield     - H&E / IHC; RGB pages
+##   polaris_scanband - Vectra / Polaris / OPAL; channel metadata in
 ##                     <ScanBands-i> XML elements
-##   fusion_paged    – Akoya PhenoCycler-Fusion; per-page XML with JSON
+##   fusion_paged    - Akoya PhenoCycler-Fusion; per-page XML with JSON
 ##                     <ScanProfile>
 ##
 ## No Java dependency; uses tiff + xml2 (both in Suggests).
@@ -49,7 +49,7 @@
 #'   channels.
 #' @param level      Integer, pyramid resolution level.  \code{1} = full
 #'   resolution (default), \code{2} = half resolution, etc.
-#' @param as_integer Logical; return raw 16-bit integers (0–65535) rather than
+#' @param as_integer Logical; return raw 16-bit integers (0-65535) rather than
 #'   normalised \code{[0, 1]} doubles?  Default \code{TRUE}.
 #' @param lazy       Logical; if \code{TRUE} return a
 #'   \code{\link[DelayedArray]{DelayedArray}} backed by a
@@ -59,7 +59,7 @@
 #'
 #' @return
 #' \describe{
-#'   \item{\code{lazy = FALSE}}{A \code{QPTIFFImage} — a 3-D numeric array
+#'   \item{\code{lazy = FALSE}}{A \code{QPTIFFImage} - a 3-D numeric array
 #'     \code{[height, width, channels]} with class \code{c("QPTIFFImage",
 #'     "array")}.  Channel names are stored in \code{dimnames(img)[[3]]}.
 #'     Standard array subscripting works: \code{img[, , "DAPI"]} extracts a
@@ -181,7 +181,7 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
   message("Reading IFD page layouts ...")
   all_layouts_raw <- .read_all_ifd_page_layouts(path)
 
-  # --- 6. Compute channel → absolute page index mapping -----------------
+  # --- 6. Compute channel -> absolute page index mapping -----------------
   if (is_rgb) {
     # Brightfield: all channels are samples within one page per pyramid level.
     # page_indices[k] = level for all k; the eager/lazy path splits samples.
@@ -310,7 +310,7 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
     pg <- tryCatch(
       .read_qptiff_page(path, layout),
       error = function(e) {
-        warning("Page ", page_indices[k], " read error: ", conditionMessage(e),
+        warning("Page ", page_indices[k], ": ", conditionMessage(e),
                 "\nReturning NA for channel '", ch_names[k], "'.")
         matrix(NA_real_, nrow = h, ncol = w)
       }
@@ -364,6 +364,19 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
 # ============================================================
 # QPTIFFImage S3 class  (3-D array [H x W x C] with named channels)
 # ============================================================
+
+#' QPTIFFImage: an in-memory or on-disk multi-channel image
+#'
+#' An S3 class representing a \code{[H x W x C]} multiplex image, either
+#' eagerly loaded as a plain 3-D array or lazily backed by a
+#' \code{DelayedArray} (see \code{\link{QPTIFFArraySeed-class}}). Created by
+#' \code{\link{read_qptiff}} or \code{\link{as.QPTIFFImage}}, and consumed by
+#' \code{\link{bgnorm_pixels}}, \code{\link{plot_qptiff}}, and
+#' \code{\link{write_qptiff}}.
+#'
+#' @return Not applicable; documents the \code{QPTIFFImage} class structure.
+#' @name QPTIFFImage
+NULL
 
 #' Eager constructor for QPTIFFImage (in-memory array backing)
 #'
@@ -430,6 +443,11 @@ print.QPTIFFImage <- function(x, ...) {
 #'   channel), or \code{NULL}.
 #' @seealso \code{\link{bgnorm_pixels}}
 #' @export
+#' @examples
+#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' img <- read_qptiff(path)
+#' adj <- bgnorm_pixels(img, markers = names(img)[1])
+#' bgnorm_results(adj)
 bgnorm_results <- function(x, ...) UseMethod("bgnorm_results")
 
 #' @export
@@ -446,6 +464,8 @@ dimnames.QPTIFFImage <- function(x) {
 }
 
 #' Channel names of a QPTIFFImage (third-dimension names of the array)
+#' @param x A \code{QPTIFFImage}.
+#' @return Character vector of channel names, or \code{NULL}.
 #' @export
 names.QPTIFFImage <- function(x) dimnames(x)[[3L]]
 
@@ -488,7 +508,7 @@ names.QPTIFFImage <- function(x) dimnames(x)[[3L]]
 #' @examples
 #' arr <- array(1:8, dim = c(2, 2, 2),
 #'              dimnames = list(NULL, NULL, c("ch1", "ch2")))
-#' img <- .new_QPTIFFImage(arr)
+#' img <- as.QPTIFFImage(arr)
 #' names(img) <- c("DAPI", "CD3")
 #' names(img)
 `names<-.QPTIFFImage` <- function(x, value) {
@@ -504,6 +524,8 @@ names.QPTIFFImage <- function(x) dimnames(x)[[3L]]
 }
 
 #' Number of channels in a QPTIFFImage
+#' @param x A \code{QPTIFFImage}.
+#' @return Integer; the number of channels.
 #' @export
 length.QPTIFFImage <- function(x) dim(x)[3L]
 
@@ -514,15 +536,21 @@ length.QPTIFFImage <- function(x) dim(x)[3L]
 #' when a single channel is selected.  To extract a plain 2-D matrix for one
 #' channel, use \code{unclass(img[, , "DAPI"])[, , 1L]}.
 #' \itemize{
-#'   \item \code{img[, , "DAPI"]} — single channel (returns a 1-channel QPTIFFImage)
-#'   \item \code{img[, , c("DAPI","CD3")]} — multi-channel sub-image
-#'   \item \code{img[1:512, 1:512, ]} — spatial crop
+#'   \item \code{img[, , "DAPI"]} - single channel (returns a 1-channel QPTIFFImage)
+#'   \item \code{img[, , c("DAPI","CD3")]} - multi-channel sub-image
+#'   \item \code{img[1:512, 1:512, ]} - spatial crop
 #' }
+#' @param x    A \code{QPTIFFImage}.
+#' @param i    Row indices (spatial), or missing.
+#' @param j    Column indices (spatial), or missing.
+#' @param k    Channel indices (numeric or character), or missing.
+#' @param drop Ignored; the result is always a 3-D \code{QPTIFFImage}.
+#' @return A \code{QPTIFFImage}.
 #' @export
 `[.QPTIFFImage` <- function(x, i, j, k, drop = FALSE) {
   md           <- attr(x, "metadata")
   br           <- attr(x, "bgnorm_results")
-  # bgnorm_results are per-pixel vectors — they are only valid when the spatial
+  # bgnorm_results are per-pixel vectors - they are only valid when the spatial
   # dimensions are untouched.  Spatial subsetting (i or j specified) invalidates
   # them; channel-only subsetting (only k specified, or nothing) preserves them.
   spatial_sub  <- !missing(i) || !missing(j)
@@ -588,6 +616,9 @@ length.QPTIFFImage <- function(x) dim(x)[3L]
 }
 
 #' Convert a QPTIFFImage to a named list of 2-D channel matrices
+#' @param x   A \code{QPTIFFImage}.
+#' @param ... Unused.
+#' @return A named list of 2-D matrices, one per channel.
 #' @export
 as.list.QPTIFFImage <- function(x, ...) {
   chs <- names(x)
@@ -674,7 +705,7 @@ as.array.QPTIFFImage <- function(x, ...) {
 #' @examples
 #' arr <- array(1:12, dim = c(3, 4, 1),
 #'              dimnames = list(NULL, NULL, "DAPI"))
-#' img <- .new_QPTIFFImage(arr)
+#' img <- as.QPTIFFImage(arr)
 #' m   <- as.matrix(img)
 #' dim(m)          # 3 x 4
 #' attr(m, "channel")  # "DAPI"
@@ -716,12 +747,13 @@ as.matrix.QPTIFFImage <- function(x, ...) {
 #' }
 #'
 #' @param x A \code{\link{QPTIFFImage}}.
+#' @param ... Unused.
 #' @return A named list of metadata.
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' img  <- read_qptiff("slide.qptiff", level = 3, lazy = TRUE)
+#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' img  <- read_qptiff(path)
 #' meta <- metadata(img)
 #' meta$format
 #' # Per-channel dye information
@@ -730,17 +762,16 @@ as.matrix.QPTIFFImage <- function(x, ...) {
 #'   protein = sapply(ch_meta, `[[`, "name"),
 #'   dye     = sapply(ch_meta, function(ch) ch$dye_from_name %||% NA_character_)
 #' )
-#' }
 metadata <- function(x, ...) UseMethod("metadata")
 
-#' @rdname metadata.QPTIFFImage
+#' @rdname metadata
 #' @export
 metadata.QPTIFFImage <- function(x, ...) attr(x, "metadata")
 
-# Fallback for S4 objects (SummarizedExperiment, etc.) — delegates to S4Vectors.
+# Fallback for S4 objects (SummarizedExperiment, etc.) - delegates to S4Vectors.
 #' @export
 metadata.default <- function(x, ...) {
-  if (methods::isS4(x))
+  if (isS4(x))
     S4Vectors::metadata(x, ...)
   else
     stop("No 'metadata' method for class '", class(x)[1L], "'.")
@@ -777,7 +808,7 @@ metadata.default <- function(x, ...) {
 #' The already-parsed \code{fluorophore} field is used as the primary signal;
 #' a regex against known dye naming conventions serves as a fallback.
 #'
-#' Handles multi-hyphen names correctly: \code{"HLA-A-Atto550"} →
+#' Handles multi-hyphen names correctly: \code{"HLA-A-Atto550"} ->
 #' protein \code{"HLA-A"}, dye \code{"Atto550"}.
 #'
 #' @param name       Character scalar; raw channel / biomarker name.
@@ -845,7 +876,7 @@ metadata.default <- function(x, ...) {
 
   doc <- tryCatch(xml2::read_xml(xml_str), error = function(e) NULL)
   if (is.null(doc)) {
-    message("Warning: failed to parse QPI XML.")
+    message("Failed to parse QPI XML.")
     return(empty())
   }
 
@@ -987,7 +1018,7 @@ metadata.default <- function(x, ...) {
   )
 }
 
-# ---- Format detection  (≡ _detect_format) --------------------------------
+# ---- Format detection  (== _detect_format) --------------------------------
 
 #' @keywords internal
 .detect_qptiff_format <- function(doc, scan_mode, is_rgb) {
@@ -1007,7 +1038,7 @@ metadata.default <- function(x, ...) {
   .QPTIFF_UNK
 }
 
-# ---- Exposure time parsing (≡ _parse_exposure_times) --------------------
+# ---- Exposure time parsing (== _parse_exposure_times) --------------------
 
 #' @keywords internal
 .parse_exposure_times_xml <- function(doc) {
@@ -1020,7 +1051,7 @@ metadata.default <- function(x, ...) {
   list(if (inherits(et, "xml_missing")) NULL else .xf_node(et))
 }
 
-# ---- Camera parsing (≡ _parse_camera) -----------------------------------
+# ---- Camera parsing (== _parse_camera) -----------------------------------
 
 #' @keywords internal
 .parse_camera_xml <- function(doc) {
@@ -1034,7 +1065,7 @@ metadata.default <- function(x, ...) {
   )
 }
 
-# ---- Scan resolution (≡ _parse_scan_resolution) -------------------------
+# ---- Scan resolution (== _parse_scan_resolution) -------------------------
 
 #' @keywords internal
 .parse_scan_resolution_xml <- function(doc) {
@@ -1050,7 +1081,7 @@ metadata.default <- function(x, ...) {
   )
 }
 
-# ---- Active band selection (≡ _select_active_band) ----------------------
+# ---- Active band selection (== _select_active_band) ----------------------
 
 #' @keywords internal
 .select_active_band <- function(filter_node) {
@@ -1067,7 +1098,7 @@ metadata.default <- function(x, ...) {
   bands[[1L]]
 }
 
-# ---- Per-channel field extraction (≡ _populate_channel_fields_from_element) --
+# ---- Per-channel field extraction (== _populate_channel_fields_from_element) --
 
 #' @keywords internal
 .populate_channel_from_node <- function(node, fields) {
@@ -1127,7 +1158,7 @@ metadata.default <- function(x, ...) {
   if (is.null(fields$excitation_wavelength_nm))
     fields$excitation_wavelength_nm <- .xf(node, ".//ExcitationWavelength")
 
-  # Infer emission from OPAL fluorophore name (e.g. "OPAL520" → 520)
+  # Infer emission from OPAL fluorophore name (e.g. "OPAL520" -> 520)
   if (is.null(fields$emission_wavelength_nm) && !is.null(fields$fluorophore)) {
     m <- regmatches(fields$fluorophore, regexpr("[0-9]{3,4}", fields$fluorophore))
     if (length(m) == 1L) fields$emission_wavelength_nm <- as.numeric(m)
@@ -1199,7 +1230,7 @@ metadata.default <- function(x, ...) {
   fields
 }
 
-# ---- Brightfield channel parsing (≡ _parse_brightfield_channels) ---------
+# ---- Brightfield channel parsing (== _parse_brightfield_channels) ---------
 
 #' @keywords internal
 .parse_brightfield_channels <- function(n_samples, doc = NULL) {
@@ -1234,7 +1265,7 @@ metadata.default <- function(x, ...) {
   })
 }
 
-# ---- Polaris ScanBand channel parsing (≡ _parse_fluorescence_channels) ---
+# ---- Polaris ScanBand channel parsing (== _parse_fluorescence_channels) ---
 
 #' @keywords internal
 .parse_polaris_channels <- function(doc, exposure_times) {
@@ -1251,7 +1282,7 @@ metadata.default <- function(x, ...) {
   })
 }
 
-# ---- Fusion per-page channel parsing (≡ _parse_channels_from_per_page_xmls) --
+# ---- Fusion per-page channel parsing (== _parse_channels_from_per_page_xmls) --
 
 #' @keywords internal
 .parse_per_page_channels <- function(per_page_xmls) {
@@ -1268,7 +1299,7 @@ metadata.default <- function(x, ...) {
   })
 }
 
-# ---- Fluorophore supplement from Fusion JSON (≡ inline logic in parse_qpi_xml) --
+# ---- Fluorophore supplement from Fusion JSON (== inline logic in parse_qpi_xml) --
 
 #' @keywords internal
 .supplement_fluorophore_from_json <- function(channels, json_str) {
@@ -1291,7 +1322,7 @@ metadata.default <- function(x, ...) {
   channels
 }
 
-# ---- Scan profile JSON (≡ _parse_scan_profile_json) ----------------------
+# ---- Scan profile JSON (== _parse_scan_profile_json) ----------------------
 
 #' @keywords internal
 .parse_scan_profile_json <- function(image_info, json_str) {
@@ -1312,7 +1343,7 @@ metadata.default <- function(x, ...) {
 }
 
 # ============================================================
-# IFD chain reader — reads ImageDescription + SamplesPerPixel
+# IFD chain reader - reads ImageDescription + SamplesPerPixel
 # from every TIFF/BigTIFF page
 # ============================================================
 
@@ -1431,15 +1462,15 @@ metadata.default <- function(x, ...) {
 }
 
 # ============================================================
-# Layout detection — channel count and pyramid levels
+# Layout detection - channel count and pyramid levels
 # ============================================================
 
 #' Determine number of channels and pyramid levels from IFD descriptions
 #'
 #' Detects the repeating-page pattern:
 #' \itemize{
-#'   \item All identical → Polaris; channel count from ScanBands-i.
-#'   \item Repeating with period N → Fusion paged; N channels.
+#'   \item All identical -> Polaris; channel count from ScanBands-i.
+#'   \item Repeating with period N -> Fusion paged; N channels.
 #' }
 #' @keywords internal
 .detect_layout <- function(descriptions, samples_per_pixel) {
@@ -1449,7 +1480,7 @@ metadata.default <- function(x, ...) {
   is_rgb <- !is.na(samples_per_pixel[1L]) && samples_per_pixel[1L] >= 3L
 
   # Brightfield: one RGB page per pyramid level; n_ch = samples per pixel.
-  # Handle this before XML inspection — RGB pages use a different layout.
+  # Handle this before XML inspection - RGB pages use a different layout.
   if (is_rgb) {
     spp_val <- as.integer(samples_per_pixel[1L])
     return(list(n_channels = spp_val, n_levels = max(1L, n), is_rgb = TRUE))
@@ -1460,14 +1491,14 @@ metadata.default <- function(x, ...) {
   valid       <- !is.na(descriptions) & nzchar(descriptions)
   clean_descs <- descriptions[valid]
 
-  # No XML at all → regular non-QPI TIFF; treat each page as one channel
+  # No XML at all -> regular non-QPI TIFF; treat each page as one channel
   if (length(clean_descs) == 0L)
     return(list(n_channels = n, n_levels = 1L, is_rgb = is_rgb))
 
   first <- clean_descs[[1L]]
   m     <- length(clean_descs)
 
-  # All identical → Polaris (shared XML)
+  # All identical -> Polaris (shared XML)
   if (all(clean_descs == first)) {
     n_ch <- tryCatch({
       doc   <- xml2::read_xml(first)
@@ -1482,11 +1513,11 @@ metadata.default <- function(x, ...) {
     return(list(n_channels = n_ch, n_levels = n_lev, is_rgb = is_rgb))
   }
 
-  # Find where first description repeats → period = channel count
+  # Find where first description repeats -> period = channel count
   rep_idx <- which(clean_descs == first)
   if (length(rep_idx) < 2L) {
     # Fusion paged: every page has unique per-page XML (no raw-string repetition).
-    # Fall back to comparing extracted biomarker names — stop at first repeat.
+    # Fall back to comparing extracted biomarker names - stop at first repeat.
     n_ch <- .detect_period_from_channel_names(clean_descs)
     if (n_ch > 0L) {
       n_lev <- max(1L, m %/% n_ch)
