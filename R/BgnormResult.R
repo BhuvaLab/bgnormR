@@ -5,7 +5,8 @@
 #' (per channel, via \code{\link{bgnorm_results}}) and \code{\link{bgnorm_cells}}.
 #'
 #' @field parameters      List with elements \code{means}, \code{sds}, \code{props}.
-#' @field posteriors      Matrix (n x G) of posterior probabilities.
+#' @field n                Integer; total number of input observations
+#'   (pixels or cells, including zeros) for this channel.
 #' @field threshold       For the 3-component (pixel-level) model: a single
 #'   numeric scalar giving the maximum adjusted intensity of Non-specific pixels.
 #'   Combined with the implicit class-1 boundary at 0, this encodes the full
@@ -33,14 +34,14 @@
 NULL
 
 #' @keywords internal
-.new_BgnormResult <- function(parameters, posteriors, jsd,
+.new_BgnormResult <- function(parameters, n, jsd,
                                level, quantile_norm, no_signal = FALSE,
                                threshold = NULL, histogram = NULL,
                                bic = NULL) {
   structure(
     list(
       parameters    = parameters,
-      posteriors    = posteriors,
+      n             = n,
       threshold     = threshold,
       histogram     = histogram,
       jsd           = jsd,
@@ -58,7 +59,7 @@ print.BgnormResult <- function(x, ...) {
   G    <- length(x$parameters$means)
   props <- x$parameters$props
   cat("BgnormResult (", x$level, "-level)\n", sep = "")
-  cat("  n =", nrow(x$posteriors), "\n")
+  cat("  n =", x$n, "\n")
   cat("  Component means:", round(x$parameters$means, 3), "\n")
   cat("  JSD (QC metric):", if (is.na(x$jsd)) "NA" else round(x$jsd, 4), "\n")
   if (!is.null(x$bic)) {

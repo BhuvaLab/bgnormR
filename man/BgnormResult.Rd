@@ -15,7 +15,8 @@ A lightweight list-based S3 class returned by \code{\link{bgnorm_pixels}}
 \describe{
 \item{\code{parameters}}{List with elements \code{means}, \code{sds}, \code{props}.}
 
-\item{\code{posteriors}}{Matrix (n x G) of posterior probabilities.}
+\item{\code{n}}{Integer; total number of input observations
+(pixels or cells, including zeros) for this channel.}
 
 \item{\code{threshold}}{For the 3-component (pixel-level) model: a single
 numeric scalar giving the maximum adjusted intensity of Non-specific pixels.

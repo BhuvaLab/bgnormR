@@ -11,7 +11,7 @@ test_that("bgnorm_cells has 2 components", {
   x   <- sim_cell_intensities()
   res <- bgnorm_cells(x)
   expect_length(res$parameters$means, 2L)
-  expect_equal(ncol(res$posteriors), 2L)
+  expect_length(res$parameters$props, 2L)
 })
 
 test_that("bgnorm_cells quantile_norm flag is recorded in result", {
@@ -40,11 +40,10 @@ test_that("bgnorm_sce.matrix processes a matrix and returns bgnorm_matrix", {
   expect_equal(dim(res), dim(mat))
 })
 
-test_that("bgnorm_cells posteriors have full length when sample_prop < 1", {
+test_that("bgnorm_cells n has full length when sample_prop < 1", {
   x   <- sim_cell_intensities(n_ns = 200, n_sig = 100)
   res <- bgnorm_cells(x, sample_prop = 0.2)
-  expect_equal(nrow(res$posteriors), length(x))
-  expect_equal(ncol(res$posteriors), 2L)
+  expect_equal(res$n, length(x))
 })
 
 test_that("bgnorm_sce works on plain SummarizedExperiment", {

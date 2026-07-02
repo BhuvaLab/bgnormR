@@ -39,7 +39,7 @@
 #'
 #' @return A \code{QPTIFFImage} \code{[H x W x C]} of background-adjusted
 #'   log-intensities.  The per-channel \code{\link{BgnormResult}} objects
-#'   (GMM parameters, posteriors, JSD) are stored as an attribute; retrieve
+#'   (GMM parameters, JSD) are stored as an attribute; retrieve
 #'   them with \code{\link{bgnorm_results}(result)}.
 #'
 #' @seealso \code{\link{bgnorm_cells}}, \code{\link{bgnorm_results}},
@@ -132,13 +132,12 @@ bgnorm_pixels <- function(img, channels = NULL, cofactor = 150,
   gmm <- .fit_gmm_bic(x_log, sample_prop = sample_prop, ...)
 
   if (gmm$no_signal) {
-    post2 <- .gmm_posteriors(x_log, gmm$means, gmm$props, gmm$sds)
     x_adj <- numeric(length(x_log))
     return(list(
       adjusted = x_adj,
       result   = .new_BgnormResult(
         parameters    = list(means = gmm$means, sds = gmm$sds, props = gmm$props),
-        posteriors    = post2,
+        n             = length(x_log),
         threshold     = NULL,
         histogram     = .compute_histogram(x_log),
         jsd           = NA_real_,
@@ -169,7 +168,7 @@ bgnorm_pixels <- function(img, channels = NULL, cofactor = 150,
     result   = .new_BgnormResult(
       parameters    = list(means = params$means, sds = params$sds,
                            props = params$props),
-      posteriors    = params$posteriors,
+      n             = length(x_log),
       threshold     = .compute_threshold(x_adj, cls),
       histogram     = .compute_histogram(x_log),
       jsd           = jsd,

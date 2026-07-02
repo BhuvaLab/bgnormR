@@ -54,7 +54,7 @@ test_that("signal pixels have positive mean adjusted intensity (from QPTIFFImage
   res <- bgnorm_pixels(img)
   ch  <- bgnorm_results(res)[["Ch1"]]
   adj <- as.vector(as.array(res)[,, "Ch1"])
-  signal_adj <- adj[ch$posteriors[, 3L] > 0.9]
+  signal_adj <- adj[adj > ch$threshold]
   if (length(signal_adj) > 5L) expect_true(mean(signal_adj) > 0)
 })
 
@@ -84,14 +84,13 @@ test_that("print and summary work for BgnormResult", {
   expect_output(summary(br), "Background")
 })
 
-test_that("posteriors span all pixels when sample_prop < 1", {
+test_that("n spans all pixels when sample_prop < 1", {
   set.seed(42)
   img <- sim_pixel_image()
   res <- bgnorm_pixels(img, sample_prop = 0.1)
   ch  <- bgnorm_results(res)[["Ch1"]]
   n   <- dim(img)[1L] * dim(img)[2L]
-  expect_equal(nrow(ch$posteriors), n)
-  expect_equal(ncol(ch$posteriors), 3L)
+  expect_equal(ch$n, n)
 })
 
 # ---- bgnorm_pixels: multi-channel ------------------------------------------

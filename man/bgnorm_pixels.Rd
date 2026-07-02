@@ -44,7 +44,7 @@ fitter.}
 \value{
 A \code{QPTIFFImage} \code{[H x W x C]} of background-adjusted
   log-intensities.  The per-channel \code{\link{BgnormResult}} objects
-  (GMM parameters, posteriors, JSD) are stored as an attribute; retrieve
+  (GMM parameters, JSD) are stored as an attribute; retrieve
   them with \code{\link{bgnorm_results}(result)}.
 }
 \description{

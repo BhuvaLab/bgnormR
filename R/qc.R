@@ -95,7 +95,7 @@ qc_summary <- function(results) {
     r  <- results[[i]]
     G  <- length(r$parameters$means)
     jsd_val  <- r$jsd
-    prop_sig <- if (isTRUE(r$no_signal)) NA_real_ else mean(r$posteriors[, G])
+    prop_sig <- if (isTRUE(r$no_signal)) NA_real_ else r$parameters$props[G]
     data.frame(name = nms[i], jsd = jsd_val, prop_signal = prop_sig,
                stringsAsFactors = FALSE)
   })

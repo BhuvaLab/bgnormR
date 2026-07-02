@@ -81,7 +81,7 @@ bgnorm_cells <- function(x, cofactor = 150, quantile_norm = FALSE,
     result   = .new_BgnormResult(
       parameters    = list(means = params$means, sds = params$sds,
                            props = params$props),
-      posteriors    = params$posteriors,
+      n             = length(x_log),
       threshold     = NULL,   # 2-component: class boundary is adj > 0
       histogram     = .compute_histogram(x_log),
       jsd           = jsd,
