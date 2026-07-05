@@ -1,9 +1,12 @@
 #' Write a QPTIFFImage to a TIFF file
 #'
-#' Writes a \code{\link{QPTIFFImage}} as a multi-page 16-bit grayscale TIFF
-#' (one page per channel).  Per-channel bgnorm results are embedded as JSON in
-#' the TIFF \code{ImageDescription} (tag 270) of each page so the file is
-#' self-documenting.
+#' Writes a \code{\link{QPTIFFImage}} as a multi-page 16-bit grayscale
+#' OME-TIFF (one page per channel).  The first page carries an OME-XML
+#' \code{ImageDescription} (tag 270) that declares the pages as \emph{channels}
+#' (\code{SizeC = nChannels}, \code{SizeZ = SizeT = 1}), so viewers such as
+#' QuPath / Bio-Formats interpret each page as a channel rather than a
+#' timepoint.  Per-channel bgnorm results are embedded so the file is
+#' self-documenting and round-trips through \code{\link{read_qptiff}}.
 #'
 #' @section Intensity transform:
 #' \describe{
@@ -17,8 +20,14 @@
 #' \code{[0, 65535]} range before being written as 16-bit unsigned integers.
 #'
 #' @section Metadata:
-#' Each page's \code{ImageDescription} tag (TIFF tag 270) is a minimal XML
-#' document understood by \code{\link{read_qptiff}}:
+#' The first page's \code{ImageDescription} tag (TIFF tag 270) is an OME-XML
+#' document.  Its \code{<Pixels>} element declares \code{SizeC = nChannels}
+#' with one \code{<Channel Name="...">} per channel and an explicit
+#' \code{<TiffData>} page-to-channel mapping, which is what makes downstream
+#' viewers read the pages as channels.  Channel 0's bgnorm metadata is appended
+#' to the OME root as no-namespace elements (ignored by OME readers but read
+#' back by \code{\link{read_qptiff}}); pages 1..n each carry a minimal
+#' \code{PerkinElmerQPI} block:
 #' \preformatted{
 #' <PerkinElmerQPI>
 #'   <Biomarker>CD20</Biomarker>
@@ -66,9 +75,9 @@ write_qptiff <- function(x, path) {
   # Extract 3D array (materialises lazy images)
   arr <- as.array.QPTIFFImage(x)
 
-  # Build uint16 matrices and description strings per channel
-  mats  <- vector("list", C)
-  descs <- character(C)
+  # Build uint16 matrices and per-channel description lists
+  mats       <- vector("list", C)
+  desc_lists <- vector("list", C)
 
   for (k in seq_len(C)) {
     ch  <- chs[k]
@@ -97,11 +106,57 @@ write_qptiff <- function(x, path) {
         )
       )
     }
-    descs[k] <- .desc_to_string(desc_list)
+    desc_lists[[k]] <- desc_list
   }
+
+  # Pages 1..n carry a PerkinElmerQPI block; the first page instead carries an
+  # OME-XML description declaring the pages as channels (so QuPath / Bio-Formats
+  # read them as channels, not timepoints).  Channel 0's bgnorm metadata is
+  # embedded in the OME root as no-namespace elements so read_qptiff still
+  # recovers it.
+  descs <- vapply(desc_lists, .desc_to_string, character(1L))
+  descs[1L] <- .build_ome_description(chs, H, W, C, desc_lists[[1L]])
 
   .write_tiff_binary(path, mats, descs, H, W)
   invisible(path)
+}
+
+# ---- Internal: build the OME-XML description for the first page -----------
+#
+# Declares one Image with SizeC = number of channels (SizeZ = SizeT = 1) and an
+# explicit page->channel (TiffData) mapping, so OME-aware readers interpret each
+# TIFF page as a channel.  Channel 0's Biomarker / transform / bgnorm elements
+# are appended to the OME root with an empty namespace: OME readers ignore
+# foreign-namespace elements, while read_qptiff's direct-child XPath lookups
+# still find them, preserving the round-trip for channel 0.
+
+.build_ome_description <- function(chs, H, W, C, ch0_desc_list) {
+  ns <- "http://www.openmicroscopy.org/Schemas/OME/2016-06"
+
+  channels <- paste0(vapply(seq_len(C), function(k)
+    sprintf('<Channel ID="Channel:0:%d" Name="%s" SamplesPerPixel="1"/>',
+            k - 1L, .xml_escape(chs[k])),
+    character(1L)), collapse = "")
+
+  tiffdata <- paste0(vapply(seq_len(C), function(k)
+    sprintf('<TiffData FirstC="%d" FirstZ="0" FirstT="0" IFD="%d" PlaneCount="1"/>',
+            k - 1L, k - 1L),
+    character(1L)), collapse = "")
+
+  paste0(
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<OME xmlns="', ns, '" ',
+    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ',
+    'xsi:schemaLocation="', ns, ' ', ns, '/ome.xsd">',
+    '<Image ID="Image:0" Name="bgnormR">',
+    '<Pixels ID="Pixels:0" DimensionOrder="XYCZT" Type="uint16" ',
+    'SizeX="', W, '" SizeY="', H, '" SizeC="', C, '" SizeZ="1" SizeT="1" ',
+    'Interleaved="false" BigEndian="false" SignificantBits="16">',
+    channels, tiffdata,
+    '</Pixels></Image>',
+    .desc_body(ch0_desc_list, ns_reset = TRUE),
+    '</OME>'
+  )
 }
 
 # ---- Internal: serialise description list to XML --------------------------
@@ -109,7 +164,20 @@ write_qptiff <- function(x, path) {
 # Output format is XML so that read_qptiff can parse <Biomarker> to recover
 # channel names.  bgnorm parameters go in a <bgnorm> child element as JSON.
 
-.desc_to_string <- function(lst) {
+# Escape the three characters that are unsafe in XML text content.  Attribute
+# quotes are intentionally left untouched so embedded JSON survives verbatim.
+.xml_escape <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;",  x, fixed = TRUE)
+  gsub(">", "&gt;", x, fixed = TRUE)
+}
+
+# Serialise the <Biomarker>/<transform>/<bgnorm> elements shared by the
+# PerkinElmerQPI blocks and the OME channel-0 metadata.  When ns_reset = TRUE
+# each element declares an empty namespace (xmlns="") so it is a no-namespace
+# child usable inside the OME root.
+.desc_body <- function(lst, ns_reset = FALSE) {
+  a         <- if (ns_reset) ' xmlns=""' else ""
   ch_name   <- lst$channel
   transform <- lst$transform
   bgnorm    <- lst$bgnorm
@@ -129,16 +197,18 @@ write_qptiff <- function(x, path) {
         ";sds=",    paste(round(bgnorm$parameters$sds,   6L), collapse = ","),
         ";props=",  paste(round(bgnorm$parameters$props,  6L), collapse = ",")
       )
-    bgnorm_elem <- paste0("<bgnorm>", bgnorm_str, "</bgnorm>")
+    bgnorm_elem <- paste0("<bgnorm", a, ">", .xml_escape(bgnorm_str), "</bgnorm>")
   }
 
   paste0(
-    "<PerkinElmerQPI>",
-    "<Biomarker>", ch_name, "</Biomarker>",
-    "<transform>", transform, "</transform>",
-    bgnorm_elem,
-    "</PerkinElmerQPI>"
+    "<Biomarker", a, ">", .xml_escape(ch_name),   "</Biomarker>",
+    "<transform", a, ">", .xml_escape(transform), "</transform>",
+    bgnorm_elem
   )
+}
+
+.desc_to_string <- function(lst) {
+  paste0("<PerkinElmerQPI>", .desc_body(lst, ns_reset = FALSE), "</PerkinElmerQPI>")
 }
 
 # ---- Internal: minimal TIFF binary writer ---------------------------------
