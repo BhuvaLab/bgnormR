@@ -1,4 +1,13 @@
 url: ~
 template:
   bootstrap: 5
+  light-switch: true
 
+navbar:
+  structure:
+    right: [bgnormpy, search, github, lightswitch]
+  components:
+    bgnormpy:
+      text: bgnormpy
+      href: https://bhuvalab.github.io/bgnormpy
+      aria-label: bgnormpy Python package documentation

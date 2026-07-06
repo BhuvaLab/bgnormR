@@ -19,6 +19,11 @@
 #' All output values are rounded to the nearest integer and clamped to the
 #' \code{[0, 65535]} range before being written as 16-bit unsigned integers.
 #'
+#' The native, Java-free TIFF/QPTIFF reader and writer implemented here was
+#' translated from the
+#' \href{https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich}{bioio-tifffile fork}
+#' by Rafael Tubelleza.
+#'
 #' @section Metadata:
 #' The first page's \code{ImageDescription} tag (TIFF tag 270) is an OME-XML
 #' document.  Its \code{<Pixels>} element declares \code{SizeC = nChannels}

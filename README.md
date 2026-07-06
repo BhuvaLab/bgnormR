@@ -12,6 +12,10 @@ and provides full integration with Bioconductor's
 [SummarizedExperiment](https://bioconductor.org/packages/SummarizedExperiment/) /
 [SpatialExperiment](https://bioconductor.org/packages/SpatialExperiment/) ecosystem.
 
+The TIFF/QPTIFF reader and writer implemented here was translated from the
+[bioio-tifffile fork](https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich)
+by Rafael Tubelleza.
+
 ## How it works
 
 bgnorm models log₂-transformed fluorescence intensities as a **three-component Gaussian

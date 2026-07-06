@@ -85,6 +85,10 @@ names(img)   # five-plex panel
 dim(img)     # height × width × channels
 ```
 
+The native, Java-free TIFF/QPTIFF reader and writer implemented here was
+translated from the [bioio-tifffile fork](https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich)
+by Rafael Tubelleza.
+
 ---
 
 # Pixel-level normalisation

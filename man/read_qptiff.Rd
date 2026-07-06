@@ -49,6 +49,11 @@ ScanBand XML, and Fusion per-page JSON+XML.
 Channel names and rich per-channel metadata (fluorophore, exposure time,
 wavelengths, filters) are parsed from the TIFF ImageDescription tag (270)
 of each page.  The PerkinElmer XML schema is detected automatically.
+
+The native, Java-free TIFF/QPTIFF reader and writer implemented here was
+translated from the
+\href{https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich}{bioio-tifffile fork}
+by Rafael Tubelleza.
 }
 \examples{
 path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")

@@ -43,6 +43,11 @@
 #' wavelengths, filters) are parsed from the TIFF ImageDescription tag (270)
 #' of each page.  The PerkinElmer XML schema is detected automatically.
 #'
+#' The native, Java-free TIFF/QPTIFF reader and writer implemented here was
+#' translated from the
+#' \href{https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich}{bioio-tifffile fork}
+#' by Rafael Tubelleza.
+#'
 #' @param path       Character, path to the QPTIFF file.
 #' @param channels   Character vector of channel names to load, an integer
 #'   vector of 1-based channel indices, or \code{NULL} (default) to load all
