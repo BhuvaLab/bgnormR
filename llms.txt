@@ -1,0 +1,188 @@
+# bgnormR
+
+**bgnormR** implements *bgnorm* (Kharbanda, Tubelleza *et al.* 2025), a
+generative statistical framework for background correction,
+normalisation, and quality control of multiplex spatial proteomics data
+from Akoya PhenoCycler-Fusion, Cell DIVE, IMC, and CosMx platforms. The
+package includes a **Java-free** reader and writer for Akoya QPTIFF
+images and provides full integration with Bioconductor’s
+[SummarizedExperiment](https://bioconductor.org/packages/SummarizedExperiment/)
+/
+[SpatialExperiment](https://bioconductor.org/packages/SpatialExperiment/)
+ecosystem.
+
+## How it works
+
+bgnorm models log₂-transformed fluorescence intensities as a
+**three-component Gaussian Mixture Model** (GMM) representing
+background, non-specific binding, and biological signal. A closed-form
+deconvolution step isolates the signal component, and the Jensen-Shannon
+Divergence (JSD) between components 2 and 3 provides an automated
+staining-quality metric.
+
+![Three-component signal model](articles/images/bgnorm.png)
+
+Three-component signal model
+
+## Installation
+
+Install from Bioconductor (once accepted):
+
+``` r
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("bgnormR")
+```
+
+Install the development version from GitHub:
+
+``` r
+
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("BhuvaLab/bgnormR")
+```
+
+## Quick start
+
+### Pixel-level normalisation
+
+``` r
+
+library(bgnormR)
+
+# Read a multi-channel QPTIFF (no Java required)
+img <- read_qptiff("path/to/image.qptiff")
+dim(img)    # height × width × channels
+names(img)  # protein panel
+
+# Fit 3-component GMM and background-correct every channel
+res <- bgnorm_pixels(img, sample_prop = 0.1)
+
+# Inspect the model for one channel
+bgnorm_results(res)[["PanCK"]]
+
+# Visualise distributions and class assignments
+plot_distributions(res)
+plot_pixel_classes(res, markers = c("PanCK", "CD20"))
+
+# Quality control: JSD per marker
+qc_summary(res)
+plot_jsd_heatmap(res)
+
+# Export the corrected image
+write_qptiff(res, "path/to/output.qptiff")
+```
+
+### Cell-level normalisation (SummarizedExperiment)
+
+``` r
+
+library(SummarizedExperiment)
+
+# se: a SummarizedExperiment with raw counts assay
+se <- bgnorm_sce(se, assay.type = "counts", name = "bgnorm")
+
+# Per-marker model parameters are stored in metadata
+metadata(se)$bgnorm_results[["CD20"]]$jsd
+```
+
+## Key functions
+
+| Function | Description |
+|----|----|
+| [`read_qptiff()`](reference/read_qptiff.md) | Read Akoya QPTIFF images (eager or lazy/DelayedArray) |
+| [`write_qptiff()`](reference/write_qptiff.md) | Write a `QPTIFFImage` to multi-page 16-bit TIFF with embedded metadata |
+| [`bgnorm_pixels()`](reference/bgnorm_pixels.md) | Pixel-level 3-component GMM correction on a `QPTIFFImage` |
+| [`bgnorm_cells()`](reference/bgnorm_cells.md) | Cell-level 2-component GMM correction on a numeric vector |
+| [`bgnorm_sce()`](reference/bgnorm_sce.md) | Apply `bgnorm_cells` to every marker in a `SummarizedExperiment` |
+| [`qc_summary()`](reference/qc_summary.md) | Per-marker JSD and signal proportion table |
+| [`plot_distributions()`](reference/plot_distributions.md) | Histogram + fitted GMM density curves per marker |
+| [`plot_pixel_classes()`](reference/plot_pixel_classes.md) | Spatial class-assignment map (Background / Non-specific / Signal) |
+| [`plot_qptiff()`](reference/plot_qptiff.md) | Multi-channel intensity composite image |
+| [`plot_jsd_heatmap()`](reference/plot_jsd_heatmap.md) | JSD quality-control heatmap across markers and samples |
+
+## Citation
+
+Kharbanda M, Tubelleza R, Salim A, Bhuva DD (2025). *bgnorm: a
+generative framework for background correction and normalisation of
+multiplex spatial proteomics.* bioRxiv.
+<https://doi.org/10.1101/2025.placeholder>
+
+## License
+
+MIT © Dharmesh D. Bhuva
+
+# Package index
+
+## All functions
+
+- [`BgnormResult`](BgnormResult.md) : BgnormResult S3 class
+- [`dim(`*`<QPTIFFArraySeed>`*`)`](QPTIFFArraySeed-class.md)
+  [`dimnames(`*`<QPTIFFArraySeed>`*`)`](QPTIFFArraySeed-class.md)
+  [`type(`*`<QPTIFFArraySeed>`*`)`](QPTIFFArraySeed-class.md)
+  [`extract_array(`*`<QPTIFFArraySeed>`*`)`](QPTIFFArraySeed-class.md) :
+  Seed class for lazy on-disk QPTIFF access
+- [`QPTIFFImage`](QPTIFFImage.md) : QPTIFFImage: an in-memory or on-disk
+  multi-channel image
+- [`as.QPTIFFImage()`](as.QPTIFFImage.md) : Coerce a 3-D array to a
+  QPTIFFImage
+- [`as.array(`*`<QPTIFFImage>`*`)`](as.array.QPTIFFImage.md) :
+  Materialise a QPTIFFImage to a plain 3-D array
+- [`as.list(`*`<QPTIFFImage>`*`)`](as.list.QPTIFFImage.md) : Convert a
+  QPTIFFImage to a named list of 2-D channel matrices
+- [`as.matrix(`*`<QPTIFFImage>`*`)`](as.matrix.QPTIFFImage.md) : Coerce
+  a single-channel QPTIFFImage to a matrix
+- [`bgnormR-package`](bgnormR-package.md)
+  [`bgnormR`](bgnormR-package.md) : bgnormR: Background Normalisation
+  for Multiplex Spatial Proteomics
+- [`bgnorm_cells()`](bgnorm_cells.md) : Cell-level background
+  normalisation (bgnorm)
+- [`bgnorm_pixels()`](bgnorm_pixels.md) : Pixel-level background
+  normalisation (bgnorm) for a QPTIFFImage
+- [`bgnorm_results()`](bgnorm_results.md) : Per-channel bgnorm results
+  stored in a QPTIFFImage
+- [`bgnorm_sce()`](bgnorm_sce.md) : Apply cell-level bgnorm to a
+  SingleCellExperiment or matrix
+- [`` `dimnames<-`( ``*`<QPTIFFImage>`*`)`](dimnames-set-.QPTIFFImage.md)
+  : Replace the dimnames of a QPTIFFImage
+- [`inv_log_transform()`](inv_log_transform.md) : Inverse log2 transform
+  with cofactor
+- [`jsd_gaussians()`](jsd_gaussians.md) : Jensen-Shannon Divergence
+  between two Gaussian distributions
+- [`jsd_qc()`](jsd_qc.md) : Compute the JSD quality control metric from
+  bgnorm model parameters
+- [`length(`*`<QPTIFFImage>`*`)`](length.QPTIFFImage.md) : Number of
+  channels in a QPTIFFImage
+- [`log_transform()`](log_transform.md) : Log2 transform with cofactor
+- [`median_filter_3x3()`](median_filter_3x3.md) : Apply a 3 x 3 median
+  filter to a matrix
+- [`metadata()`](metadata.md) : Access the metadata embedded in a
+  QPTIFFImage
+- [`` `names<-`( ``*`<QPTIFFImage>`*`)`](names-set-.QPTIFFImage.md) :
+  Set the channel names of a QPTIFFImage
+- [`names(`*`<QPTIFFImage>`*`)`](names.QPTIFFImage.md) : Channel names
+  of a QPTIFFImage (third-dimension names of the array)
+- [`plot_distributions()`](plot_distributions.md) : Per-marker intensity
+  distribution with fitted GMM densities
+- [`plot_jsd_heatmap()`](plot_jsd_heatmap.md) : QC heatmap of
+  Jensen-Shannon Divergence across markers and samples
+- [`plot_pixel_classes()`](plot_pixel_classes.md) : Spatial GMM class
+  assignment plot for a QPTIFFImage or SpatialExperiment
+- [`plot_qptiff()`](plot_qptiff.md) : Spatial intensity plot for a
+  QPTIFFImage or SpatialExperiment
+- [`qc_summary()`](qc_summary.md) : Summarise QC across multiple bgnorm
+  results
+- [`read_qptiff()`](read_qptiff.md) : Read an Akoya PhenoCycler-Fusion
+  QPTIFF image
+- [`` `[`( ``*`<QPTIFFImage>`*`)`](sub-.QPTIFFImage.md) : Subset a
+  QPTIFFImage
+- [`write_qptiff()`](write_qptiff.md) : Write a QPTIFFImage to a TIFF
+  file
+
+# Articles
+
+### All vignettes
+
+- [Getting started with bgnormR](bgnormR.md):
