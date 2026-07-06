@@ -1,3 +1,8 @@
+# bgnormR 0.99.1
+
+## Improvements
+* `plot_qptiff()` and `plot_pixel_classes()` now render plot titles, subtitles, and captions in white so they are legible on the dark image background, across both the `QPTIFFImage` raster and `SpatialExperiment` scatter render paths.
+
 # bgnormR 0.99.0
 
 ## New Features

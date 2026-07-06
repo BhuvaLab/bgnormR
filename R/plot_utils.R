@@ -154,6 +154,9 @@
     ggplot2::theme(
       plot.background   = ggplot2::element_rect(fill = "black", colour = NA),
       panel.background  = ggplot2::element_rect(fill = "black", colour = NA),
+      plot.title       = ggplot2::element_text(colour = "white"),
+      plot.subtitle       = ggplot2::element_text(colour = "white"),
+      plot.caption       = ggplot2::element_text(colour = "white"),
       legend.text       = ggplot2::element_text(colour = "white", size = 9),
       legend.title      = ggplot2::element_text(colour = "white", size = 10,
                                                   face = "bold"),
@@ -208,6 +211,9 @@
       strip.background = ggplot2::element_rect(fill = "grey20", colour = NA),
       plot.background  = ggplot2::element_rect(fill = "black",  colour = NA),
       panel.background = ggplot2::element_rect(fill = "black",  colour = NA),
+      plot.title       = ggplot2::element_text(colour = "white"),
+      plot.subtitle       = ggplot2::element_text(colour = "white"),
+      plot.caption       = ggplot2::element_text(colour = "white"),
       legend.text      = ggplot2::element_text(colour = "white"),
       legend.title     = ggplot2::element_text(colour = "white"),
       panel.spacing    = grid::unit(3, "pt")

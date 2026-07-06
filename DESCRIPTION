@@ -1,7 +1,7 @@
 Package: bgnormR
 Type: Package
 Title: Background Normalisation for Multiplex Spatial Proteomics
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: c(
     person("Dharmesh D.", "Bhuva", role = c("aut", "cre"),
            email = "dhrmsh36@gmail.com",

@@ -16,10 +16,13 @@ must exist.}
 \code{path}, invisibly.
 }
 \description{
-Writes a \code{\link{QPTIFFImage}} as a multi-page 16-bit grayscale TIFF
-(one page per channel).  Per-channel bgnorm results are embedded as JSON in
-the TIFF \code{ImageDescription} (tag 270) of each page so the file is
-self-documenting.
+Writes a \code{\link{QPTIFFImage}} as a multi-page 16-bit grayscale
+OME-TIFF (one page per channel).  The first page carries an OME-XML
+\code{ImageDescription} (tag 270) that declares the pages as \emph{channels}
+(\code{SizeC = nChannels}, \code{SizeZ = SizeT = 1}), so viewers such as
+QuPath / Bio-Formats interpret each page as a channel rather than a
+timepoint.  Per-channel bgnorm results are embedded so the file is
+self-documenting and round-trips through \code{\link{read_qptiff}}.
 }
 \section{Intensity transform}{
 
@@ -36,8 +39,14 @@ All output values are rounded to the nearest integer and clamped to the
 
 \section{Metadata}{
 
-Each page's \code{ImageDescription} tag (TIFF tag 270) is a minimal XML
-document understood by \code{\link{read_qptiff}}:
+The first page's \code{ImageDescription} tag (TIFF tag 270) is an OME-XML
+document.  Its \code{<Pixels>} element declares \code{SizeC = nChannels}
+with one \code{<Channel Name="...">} per channel and an explicit
+\code{<TiffData>} page-to-channel mapping, which is what makes downstream
+viewers read the pages as channels.  Channel 0's bgnorm metadata is appended
+to the OME root as no-namespace elements (ignored by OME readers but read
+back by \code{\link{read_qptiff}}); pages 1..n each carry a minimal
+\code{PerkinElmerQPI} block:
 \preformatted{
 <PerkinElmerQPI>
   <Biomarker>CD20</Biomarker>
