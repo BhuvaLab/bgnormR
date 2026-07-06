@@ -96,9 +96,22 @@ carries 7 acceptable notes — line length, function length, `fnd` author role,
 
 ## Step 6 — Version + NEWS
 
-Bump the `z` in `Version:` (0.99.z convention — every push during Bioc review
-bumps z) in [DESCRIPTION](DESCRIPTION), and add or extend the top entry in
-[NEWS.md](NEWS.md) describing what this push changes.
+**Always** bump the `z` in `Version:` (0.99.z convention — every push during
+Bioc review bumps z) in [DESCRIPTION](DESCRIPTION).
+
+Updating [NEWS.md](NEWS.md) is a **judgment step, gated on the kind of change**:
+
+- **Write a NEWS entry only for major feature upgrades** — a new exported
+  function or a notable new user-facing capability. Add a new
+  `# bgnormR <version>` heading at the top, grouped under `## New Features` /
+  `## Improvements`, and describe the change from the user's perspective.
+- **Skip NEWS entirely for everything else** — documentation, attribution,
+  vignette wording, pkgdown/config, refactors, and bug-fix-only pushes. Bump the
+  version but leave NEWS.md untouched. Do **not** add a `## Documentation`,
+  `## Bug fixes`, or similar entry for these; the user considers NEWS a
+  major-feature changelog, not a per-push log.
+
+When unsure whether a change is "major," it isn't — default to skipping NEWS.
 
 ## Step 7 — Commit & push
 
