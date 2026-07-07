@@ -547,3 +547,205 @@ test_that("write_qptiff errors for invalid path", {
                                dimnames = list(NULL, NULL, "Ch1")))
   expect_error(write_qptiff(img, ""), "non-empty")
 })
+
+# ---------- QPTIFFMetadata model + accessors -----------------------------
+
+test_that("QPTIFFMetadata accessors read the OME hierarchy", {
+  ch <- list(
+    list(index = 0L, name = "DAPI", fluorophore = "DAPI",
+         exposure_time_us = 3000, color_rgb = c(0L, 0L, 255L)),
+    list(index = 1L, name = "CD3", fluorophore = "OPAL520",
+         exposure_time_us = 150000, is_brightfield = FALSE)
+  )
+  meta <- bgnormR:::.single_scene_metadata(
+    slide      = bgnormR:::.new_slide_info(slide_id = "S1"),
+    image_info = bgnormR:::.new_image_info(
+      scan_resolution = bgnormR:::.new_scan_resolution(base_pixel_size_um = 0.5)),
+    channels   = ch,
+    scales     = bgnormR:::.build_scales(3L, 0.5),
+    format     = "fusion_paged")
+
+  expect_s3_class(meta, "QPTIFFMetadata")
+  expect_equal(qpi_format(meta), "fusion_paged")
+  expect_equal(qpi_channel_names(meta), c("DAPI", "CD3"))
+  expect_equal(qpi_pixel_size_um(meta), 0.5)
+  expect_equal(qpi_n_levels(meta), 3L)
+  ct <- channel_table(meta)
+  expect_equal(nrow(ct), 2L)
+  expect_equal(ct$name, c("DAPI", "CD3"))
+  expect_equal(ct$color_rgb[1L], "0,0,255")
+})
+
+# ---------- OME colour encode / decode -----------------------------------
+
+test_that("OME colour round-trips rgb -> int32 -> rgb", {
+  skip_if_not_installed("xml2")
+  rgb <- c(18L, 52L, 200L)
+  enc <- bgnormR:::.rgb_to_ome_color(rgb)
+  node <- xml2::read_xml(sprintf('<Channel Color="%s"/>', enc))
+  expect_equal(bgnormR:::.ome_color_to_rgb(node), rgb)
+})
+
+# ---------- OME-TIFF plane index / detection -----------------------------
+
+test_that(".ome_plane_index follows DimensionOrder", {
+  sizes <- list(size_c = 4L, size_z = 1L, size_t = 1L)
+  idx <- vapply(0:3, function(c)
+    bgnormR:::.ome_plane_index(c, 0L, 0L, sizes, "XYCZT"), integer(1L))
+  expect_equal(idx, 0:3)
+})
+
+test_that(".is_ome_xml detects an OME root but not a QPI root", {
+  skip_if_not_installed("xml2")
+  expect_true(bgnormR:::.is_ome_xml(
+    '<OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06"/>'))
+  expect_false(bgnormR:::.is_ome_xml("<PerkinElmer-QPI-ImageDescription/>"))
+  expect_false(bgnormR:::.is_ome_xml(NA_character_))
+})
+
+# ---------- OME-TIFF reading (channel Name attributes) -------------------
+
+test_that("read_qptiff reads OME-TIFF channel Name attributes written by write_qptiff", {
+  skip_if_not_installed("tiff")
+  skip_if_not_installed("xml2")
+  arr <- array(as.double(seq_len(4 * 5 * 3)), dim = c(4, 5, 3),
+               dimnames = list(NULL, NULL, c("DAPI", "CD3", "CD8")))
+  img <- as.QPTIFFImage(arr)
+  tmp <- tempfile(fileext = ".ome.tif")
+  on.exit(unlink(tmp), add = TRUE)
+  write_qptiff(img, tmp)
+
+  img2 <- read_qptiff(tmp)
+  expect_equal(qpi_format(metadata(img2)), "ome_tiff")
+  expect_equal(names(img2), c("DAPI", "CD3", "CD8"))
+  expect_equal(dim(img2), c(4L, 5L, 3L))
+  expect_equal(as.numeric(as.array(img2)), as.numeric(arr))
+})
+
+test_that("write/read round-trips rich channel + slide metadata via OME + qpi map", {
+  skip_if_not_installed("tiff")
+  skip_if_not_installed("xml2")
+  ch <- list(
+    list(index = 0L, name = "DAPI", fluorophore = "DAPI",
+         color_rgb = c(0L, 0L, 255L), exposure_time_us = 3000,
+         signal_units = 64L, is_brightfield = FALSE),
+    list(index = 1L, name = "CD3", fluorophore = "OPAL520",
+         color_rgb = c(0L, 255L, 0L), exposure_time_us = 150000,
+         emission_wavelength_nm = 520, is_brightfield = FALSE)
+  )
+  meta <- bgnormR:::.single_scene_metadata(
+    slide      = bgnormR:::.new_slide_info(slide_id = "SLIDE1"),
+    image_info = bgnormR:::.new_image_info(
+      scan_resolution = bgnormR:::.new_scan_resolution(base_pixel_size_um = 0.5)),
+    channels   = ch,
+    scales     = bgnormR:::.build_scales(1L, 0.5),
+    format     = "fusion_paged")
+  arr <- array(as.double(seq_len(3 * 4 * 2)), dim = c(3, 4, 2),
+               dimnames = list(NULL, NULL, c("DAPI", "CD3")))
+  img <- bgnormR:::.new_QPTIFFImage(arr, meta)
+  tmp <- tempfile(fileext = ".ome.tif")
+  on.exit(unlink(tmp), add = TRUE)
+  write_qptiff(img, tmp)
+
+  m2 <- metadata(read_qptiff(tmp))
+  expect_equal(qpi_pixel_size_um(m2), 0.5)
+  expect_equal(m2$slide$slide_id, "SLIDE1")
+  ct <- channel_table(m2)
+  expect_equal(ct$fluorophore, c("DAPI", "OPAL520"))
+  expect_equal(ct$exposure_time_us, c(3000, 150000))
+  expect_equal(ct$color_rgb, c("0,0,255", "0,255,0"))
+  # vendor-only field recovered from the qpi://vectra MapAnnotation
+  expect_equal(qpi_channels(m2)[[1L]]$signal_units, 64L)
+})
+
+test_that("write_qptiff OME header declares channels (SizeC), not Z/T slices", {
+  skip_if_not_installed("tiff")
+  arr <- array(0, dim = c(3, 3, 4),
+               dimnames = list(NULL, NULL, c("A", "B", "C", "D")))
+  img <- as.QPTIFFImage(arr)
+  tmp <- tempfile(fileext = ".ome.tif")
+  on.exit(unlink(tmp), add = TRUE)
+  write_qptiff(img, tmp)
+  desc <- bgnormR:::.read_all_ifd_info(tmp)$descriptions[[1L]]
+  expect_true(grepl('SizeC="4"', desc))
+  expect_true(grepl('SizeZ="1"', desc))
+  expect_true(grepl('SizeT="1"', desc))
+})
+
+# ---------- OME-Zarr reading (requires Rarr) ------------------------------
+
+test_that(".match_channel_meta maps duplicate channel names in order", {
+  meta <- bgnormR:::.single_scene_metadata(
+    slide      = bgnormR:::.new_slide_info(),
+    image_info = bgnormR:::.new_image_info(),
+    channels   = list(list(index = 0L, name = "DAPI", fluorophore = "A"),
+                      list(index = 1L, name = "CD3"),
+                      list(index = 2L, name = "DAPI", fluorophore = "B")),
+    scales     = bgnormR:::.build_scales(1L),
+    format     = "fusion_paged")
+  out <- bgnormR:::.match_channel_meta(meta, c("DAPI", "DAPI", "CD3"))
+  expect_equal(out[[1L]]$fluorophore, "A")   # first DAPI -> first entry
+  expect_equal(out[[2L]]$fluorophore, "B")   # second DAPI -> second entry
+  expect_equal(out[[3L]]$name, "CD3")
+})
+
+test_that(".select_channels resolves names, indices, and errors on unknown", {
+  nm <- c("DAPI", "CD3", "CD8")
+  expect_equal(bgnormR:::.select_channels(NULL, nm)$ch_idx, 1:3)
+  expect_equal(bgnormR:::.select_channels(c("CD8", "DAPI"), nm)$ch_idx, c(3L, 1L))
+  expect_equal(bgnormR:::.select_channels(c(2L, 3L), nm)$ch_names, c("CD3", "CD8"))
+  expect_error(bgnormR:::.select_channels("MISSING", nm), "not found")
+})
+
+test_that(".ome_page_indices falls back to identity for sparse TiffData", {
+  ome <- list(
+    sizes = list(size_c = 3L, size_z = 1L, size_t = 1L),
+    dimension_order = "XYCZT",
+    tiffdata = list(list(first_c = 0L, first_z = 0L, first_t = 0L,
+                         ifd = 0L, plane_count = 1L)))  # only plane 0 mapped
+  # channels 1,2 are absent from the table -> identity fallback, no crash
+  expect_equal(bgnormR:::.ome_page_indices(ome, 3L), c(1L, 2L, 3L))
+})
+
+test_that(".is_ome_zarr_store detects .zarr paths and stores", {
+  expect_true(bgnormR:::.is_ome_zarr_store("/some/where/img.ome.zarr"))
+  expect_false(bgnormR:::.is_ome_zarr_store("/some/where/img.ome.tif"))
+})
+
+test_that("read_qptiff reads a synthetic OME-Zarr store", {
+  skip_if_not_installed("Rarr")
+  store <- file.path(tempdir(), paste0("zt_", as.integer(runif(1, 1, 1e6)), ".ome.zarr"))
+  on.exit(unlink(store, recursive = TRUE), add = TRUE)
+  dir.create(file.path(store, "scale0"), recursive = TRUE)
+  a <- array(0L, dim = c(2, 5, 4))          # (c, y, x)
+  a[1, , ] <- 10L; a[2, , ] <- matrix(1:20, 5, 4)
+  Rarr::write_zarr_array(a, file.path(store, "scale0", "image"),
+                         chunk_dim = c(1, 5, 4))
+  Rarr::write_zarr_attributes(store, list(
+    ome = list(
+      version = "0.5",
+      multiscales = list(list(
+        axes = list(list(name = "c", type = "channel"),
+                    list(name = "y", type = "space", unit = "micrometer"),
+                    list(name = "x", type = "space", unit = "micrometer")),
+        datasets = list(list(path = "scale0/image",
+          coordinateTransformations = list(list(type = "scale",
+                                                 scale = list(1, 0.5, 0.5))))),
+        name = "syn")),
+      omero = list(channels = list(list(label = "DAPI", color = "0000FF"),
+                                   list(label = "CD3",  color = "FF0000"))))
+  ))
+
+  z <- read_qptiff(store)
+  expect_equal(qpi_format(metadata(z)), "ome_zarr")
+  expect_equal(names(z), c("DAPI", "CD3"))
+  expect_equal(dim(z), c(5L, 4L, 2L))          # permuted (c,y,x) -> (y,x,c)
+  expect_equal(qpi_pixel_size_um(metadata(z)), 0.5)
+  expect_equal(as.numeric(z[1, 1, 1]), 10)     # channel 1
+  expect_equal(as.numeric(z[5, 4, 2]), 20)     # channel 2, last pixel
+
+  # lazy + channel subset
+  zl <- read_qptiff(store, channels = "CD3", lazy = TRUE)
+  expect_equal(names(zl), "CD3")
+  expect_equal(as.numeric(as.array(zl[1, 1, 1, drop = FALSE])), 1)
+})

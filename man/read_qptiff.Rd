@@ -2,19 +2,21 @@
 % Please edit documentation in R/read_qptiff.R
 \name{read_qptiff}
 \alias{read_qptiff}
-\title{Read an Akoya PhenoCycler-Fusion QPTIFF image}
+\title{Read a multiplex image (QPTIFF, OME-TIFF, or OME-Zarr)}
 \usage{
 read_qptiff(path, channels = NULL, level = 1L, as_integer = TRUE, lazy = FALSE)
 }
 \arguments{
-\item{path}{Character, path to the QPTIFF file.}
+\item{path}{Character, path to the image.  A QPTIFF / OME-TIFF file, or
+an OME-Zarr store (a directory, or a path ending in \code{.zarr}).}
 
 \item{channels}{Character vector of channel names to load, an integer
 vector of 1-based channel indices, or \code{NULL} (default) to load all
 channels.}
 
 \item{level}{Integer, pyramid resolution level.  \code{1} = full
-resolution (default), \code{2} = half resolution, etc.}
+resolution (default), \code{2} = half resolution, etc.  OME-TIFF
+sub-resolution pyramids (SubIFDs) are not supported; use \code{level = 1}.}
 
 \item{as_integer}{Logical; return raw 16-bit integers (0-65535) rather than
 normalised \code{[0, 1]} doubles?  Default \code{TRUE}.}
@@ -40,15 +42,22 @@ return a \code{\link{QPTIFFImage}}.}
 }
 }
 \description{
-Reads a QPTIFF file produced by the Akoya PhenoCycler-Fusion (formerly
-CODEX) platform, Cell DIVE, or Vectra / Polaris scanners into R without
-Java.  Handles three live format variants: brightfield RGB, Polaris
-ScanBand XML, and Fusion per-page JSON+XML.
+Reads a multiplex image into R without Java, auto-detecting the container:
+\itemize{
+  \item \strong{QPTIFF} from Akoya PhenoCycler-Fusion (formerly CODEX),
+    Cell DIVE, or Vectra / Polaris scanners - brightfield RGB, Polaris
+    ScanBand XML, and Fusion per-page JSON+XML variants.
+  \item \strong{OME-TIFF} (as written by tifffile, Bio-Formats, or QuPath) -
+    channel names are read from the \code{<Channel Name="...">} attributes of
+    the OME-XML.
+  \item \strong{OME-Zarr} (OME-NGFF) stores - requires the \pkg{Rarr}
+    package; channel names / colours are read from \code{omero.channels}.
+}
 }
 \details{
 Channel names and rich per-channel metadata (fluorophore, exposure time,
-wavelengths, filters) are parsed from the TIFF ImageDescription tag (270)
-of each page.  The PerkinElmer XML schema is detected automatically.
+wavelengths, filters, colour) are parsed into an OME-organised
+\code{\link{QPTIFFMetadata}} object, available via \code{\link{metadata}}.
 
 The native, Java-free TIFF/QPTIFF reader and writer implemented here was
 translated from the

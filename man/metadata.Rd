@@ -15,38 +15,38 @@ metadata(x, ...)
 \item{...}{Unused.}
 }
 \value{
-A named list of metadata.
+A \code{\link{QPTIFFMetadata}} object (a named list).
 }
 \description{
-Retrieves the named list of slide / image / channel metadata stored inside
-a \code{\link{QPTIFFImage}}.  The generic falls back to
+Retrieves the \code{\link{QPTIFFMetadata}} object (an OME-organised
+hierarchy of slide / image / channel / scale metadata) stored inside a
+\code{\link{QPTIFFImage}}.  The generic falls back to
 \code{\link[S4Vectors]{metadata}} for S4 objects such as
 \code{SummarizedExperiment}, so \code{metadata(img)} and
 \code{metadata(spe)} both work when bgnormR is loaded.
 }
 \details{
-The returned list typically contains:
+The returned object mirrors the OME hierarchy:
 \describe{
-  \item{\code{format}}{One of \code{"brightfield"}, \code{"polaris_scanband"},
-    or \code{"fusion_paged"}.}
-  \item{\code{channels}}{A list of per-channel lists, each with fields
-    \code{name} (protein name, dye suffix removed), \code{fluorophore}
-    (parsed from the \code{<Fluorophore>} XML tag), \code{dye_from_name}
-    (the dye suffix that was stripped from the compound biomarker name),
-    \code{exposure_time_us}, \code{emission_wavelength_nm}, etc.}
-  \item{\code{image_info}}{Physical image properties (pixel size, etc.).}
-  \item{\code{n_levels}}{Number of pyramid resolution levels.}
+  \item{\code{slide}}{Slide-constant identity (id, barcode, operator, ...).}
+  \item{\code{images}}{One scene per distinct image, each with
+    \code{image_info} (optics, camera, scan_resolution), \code{channels}
+    (per-channel \code{name}, \code{fluorophore}, \code{dye_from_name},
+    \code{exposure_time_us}, wavelengths, \code{color_rgb}, ...) and
+    \code{scales} (per pyramid level).}
+  \item{\code{acquisition_format}}{One of \code{"brightfield"},
+    \code{"polaris_scanband"}, \code{"fusion_paged"}, \code{"ome_tiff"},
+    \code{"ome_zarr"}, or \code{"unknown"}.}
 }
+Use the accessors (\code{\link{qpi_format}}, \code{\link{qpi_channels}},
+\code{\link{qpi_pixel_size_um}}, \code{\link{channel_table}}, ...) rather
+than indexing the nested list directly.
 }
 \examples{
 path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 img  <- read_qptiff(path)
 meta <- metadata(img)
-meta$format
-# Per-channel dye information
-ch_meta <- meta$channels
-data.frame(
-  protein = sapply(ch_meta, `[[`, "name"),
-  dye     = sapply(ch_meta, function(ch) ch$dye_from_name \%||\% NA_character_)
-)
+qpi_format(meta)
+# Per-channel dye information as a tidy table
+channel_table(meta)[, c("name", "fluorophore", "dye_from_name")]
 }

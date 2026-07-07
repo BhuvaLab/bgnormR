@@ -1,7 +1,7 @@
 Package: bgnormR
 Type: Package
 Title: Background Normalisation for Multiplex Spatial Proteomics
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: c(
     person("Dharmesh D.", "Bhuva", role = c("aut", "cre"),
            email = "dhrmsh36@gmail.com",
@@ -18,8 +18,8 @@ Description: Implements bgnorm, a generative statistical framework for
     sources, and a model-based quantile normalisation (bgnormQ) unifies
     measurements across markers, samples, and three-dimensional tissue
     slices. A Jensen-Shannon Divergence metric provides automated quality
-    control. A reader for Akoya PhenoCycler-Fusion QPTIFF images is
-    included that does not depend on Java.
+    control. A Java-free reader for Akoya PhenoCycler-Fusion QPTIFF,
+    OME-TIFF, and OME-Zarr (OME-NGFF) images is included.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
@@ -43,6 +43,7 @@ Suggests:
     xml2 (>= 1.3),
     jsonlite,
     ijtiff,
+    Rarr,
     BiocStyle,
     knitr,
     rmarkdown,

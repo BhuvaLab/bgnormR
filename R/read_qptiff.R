@@ -32,28 +32,37 @@
 # Public API
 # ============================================================
 
-#' Read an Akoya PhenoCycler-Fusion QPTIFF image
+#' Read a multiplex image (QPTIFF, OME-TIFF, or OME-Zarr)
 #'
-#' Reads a QPTIFF file produced by the Akoya PhenoCycler-Fusion (formerly
-#' CODEX) platform, Cell DIVE, or Vectra / Polaris scanners into R without
-#' Java.  Handles three live format variants: brightfield RGB, Polaris
-#' ScanBand XML, and Fusion per-page JSON+XML.
+#' Reads a multiplex image into R without Java, auto-detecting the container:
+#' \itemize{
+#'   \item \strong{QPTIFF} from Akoya PhenoCycler-Fusion (formerly CODEX),
+#'     Cell DIVE, or Vectra / Polaris scanners - brightfield RGB, Polaris
+#'     ScanBand XML, and Fusion per-page JSON+XML variants.
+#'   \item \strong{OME-TIFF} (as written by tifffile, Bio-Formats, or QuPath) -
+#'     channel names are read from the \code{<Channel Name="...">} attributes of
+#'     the OME-XML.
+#'   \item \strong{OME-Zarr} (OME-NGFF) stores - requires the \pkg{Rarr}
+#'     package; channel names / colours are read from \code{omero.channels}.
+#' }
 #'
 #' Channel names and rich per-channel metadata (fluorophore, exposure time,
-#' wavelengths, filters) are parsed from the TIFF ImageDescription tag (270)
-#' of each page.  The PerkinElmer XML schema is detected automatically.
+#' wavelengths, filters, colour) are parsed into an OME-organised
+#' \code{\link{QPTIFFMetadata}} object, available via \code{\link{metadata}}.
 #'
 #' The native, Java-free TIFF/QPTIFF reader and writer implemented here was
 #' translated from the
 #' \href{https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich}{bioio-tifffile fork}
 #' by Rafael Tubelleza.
 #'
-#' @param path       Character, path to the QPTIFF file.
+#' @param path       Character, path to the image.  A QPTIFF / OME-TIFF file, or
+#'   an OME-Zarr store (a directory, or a path ending in \code{.zarr}).
 #' @param channels   Character vector of channel names to load, an integer
 #'   vector of 1-based channel indices, or \code{NULL} (default) to load all
 #'   channels.
 #' @param level      Integer, pyramid resolution level.  \code{1} = full
-#'   resolution (default), \code{2} = half resolution, etc.
+#'   resolution (default), \code{2} = half resolution, etc.  OME-TIFF
+#'   sub-resolution pyramids (SubIFDs) are not supported; use \code{level = 1}.
 #' @param as_integer Logical; return raw 16-bit integers (0-65535) rather than
 #'   normalised \code{[0, 1]} doubles?  Default \code{TRUE}.
 #' @param lazy       Logical; if \code{TRUE} return a
@@ -100,14 +109,22 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
     stop("'path' must be a single character string.")
   if (!file.exists(path))
     stop("File not found: ", path)
-  if (!requireNamespace("tiff", quietly = TRUE))
-    stop("Package 'tiff' is required.  Install with: install.packages('tiff')")
-  if (!requireNamespace("xml2", quietly = TRUE))
-    stop("Package 'xml2' is required.  Install with: install.packages('xml2')")
 
   level <- as.integer(level)
   stopifnot(level >= 1L)
   stopifnot(is.logical(lazy), length(lazy) == 1L)
+
+  # --- 0. Dispatch: OME-Zarr (NGFF) store --------------------------------
+  # An OME-Zarr store is a directory (or a .zarr path); route it to the
+  # zarr reader before any TIFF-specific handling.
+  if (.is_ome_zarr_store(path))
+    return(.read_ome_zarr(path, channels = channels, level = level,
+                          as_integer = as_integer, lazy = lazy))
+
+  if (!requireNamespace("tiff", quietly = TRUE))
+    stop("Package 'tiff' is required.  Install with: install.packages('tiff')")
+  if (!requireNamespace("xml2", quietly = TRUE))
+    stop("Package 'xml2' is required.  Install with: install.packages('xml2')")
 
   # --- 1. Read all IFD ImageDescription XMLs + SamplesPerPixel ----------
   message("Reading TIFF directory structure ...")
@@ -115,6 +132,14 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
 
   if (length(ifd_info$descriptions) == 0L)
     stop("No TIFF pages found in: ", path)
+
+  # --- 1b. Dispatch: standard OME-TIFF (OME-XML root) --------------------
+  # QuPath-style OME-TIFFs carry an <OME> root in tag 270 with channel names
+  # as <Channel Name="..."> attributes; the QPI parser cannot read those, so
+  # route to the dedicated OME reader.
+  if (.is_ome_xml(ifd_info$descriptions[[1L]]))
+    return(.read_ome_tiff(path, ifd_info, channels = channels, level = level,
+                          as_integer = as_integer, lazy = lazy))
 
   # --- 2. Determine format, channel count, pyramid levels ---------------
   layout <- .detect_layout(ifd_info$descriptions, ifd_info$samples_per_pixel)
@@ -129,58 +154,71 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
   first_xml <- ifd_info$descriptions[[1L]]
   pp_xmls   <- ifd_info$descriptions[seq_len(n_ch)]
 
-  meta <- .parse_qpi_xml(
+  parsed <- .parse_qpi_xml(
     xml_str       = first_xml,
     per_page_xmls = pp_xmls,
     n_channels    = n_ch,
     is_rgb        = is_rgb
   )
-  meta$n_levels <- n_lev
 
   # Promote format to "brightfield" for is_rgb files whose XML didn't parse
-  if (is_rgb && meta$format == .QPTIFF_UNK) meta$format <- .QPTIFF_BF
+  fmt <- parsed$format
+  if (is_rgb && fmt == .QPTIFF_UNK) fmt <- .QPTIFF_BF
 
   # --- 3b. Separate protein name from fluorescence dye suffix ---------------
   # Compound biomarker names like "CD3e-AF647" are split into a protein name
   # ("CD3e") and a dye name ("AF647").  ch$name is updated to the protein
   # name; the extracted dye is stored in ch$dye_from_name.  Brightfield
   # channels (R/G/B) are left unchanged.
+  channels_meta <- parsed$channels
   if (!is_rgb) {
-    meta$channels <- lapply(meta$channels, function(ch) {
-      split          <- .split_protein_dye(ch$name, ch$fluorophore)
-      ch$name        <- split$protein
+    channels_meta <- lapply(channels_meta, function(ch) {
+      split            <- .split_protein_dye(ch$name, ch$fluorophore)
+      ch$name          <- split$protein
       ch$dye_from_name <- split$dye
       ch
     })
   }
 
-  all_channel_names <- vapply(meta$channels, `[[`, character(1L), "name")
+  all_channel_names <- vapply(channels_meta,
+                              function(ch) ch$name %||% NA_character_,
+                              character(1L))
 
-  # Fallback channel names when XML parsing yielded none
+  # Channel-name fallbacks.  Too few parsed entries -> synthesize the whole set;
+  # otherwise keep the parsed names and fill only the channels that lacked one.
   if (length(all_channel_names) < n_ch) {
-    if (is_rgb && n_ch == 3L) {
-      all_channel_names <- c("Red", "Green", "Blue")
-    } else {
-      all_channel_names <- paste0(if (is_rgb) "Sample_" else "Channel_",
-                                   seq_len(n_ch) - 1L)
-    }
+    all_channel_names <- if (is_rgb && n_ch == 3L) c("Red", "Green", "Blue")
+      else paste0(if (is_rgb) "Sample_" else "Channel_", seq_len(n_ch) - 1L)
+  } else if (anyNA(all_channel_names)) {
+    miss <- which(is.na(all_channel_names))
+    all_channel_names[miss] <- paste0(if (is_rgb) "Sample_" else "Channel_",
+                                       miss - 1L)
   }
+
+  # Normalise the channel-metadata list to n_ch entries, aligned to the names.
+  channels_meta <- lapply(seq_len(n_ch), function(i) {
+    ch <- if (i <= length(channels_meta)) channels_meta[[i]] else list()
+    ch$index          <- ch$index %||% (i - 1L)
+    ch$name           <- all_channel_names[i]
+    ch$is_brightfield <- ch$is_brightfield %||% is_rgb
+    ch
+  })
 
   # --- 4. Select channels -----------------------------------------------
-  if (!is.null(channels)) {
-    if (is.numeric(channels))
-      channels <- all_channel_names[as.integer(channels)]
-    idx  <- match(channels, all_channel_names)
-    miss <- channels[is.na(idx)]
-    if (length(miss))
-      stop("Channel(s) not found: ", paste(miss, collapse = ", "),
-           "\nAvailable: ", paste(all_channel_names, collapse = ", "))
-    ch_idx <- idx
-  } else {
-    ch_idx <- seq_len(n_ch)
-  }
+  sel      <- .select_channels(channels, all_channel_names)
+  ch_idx   <- sel$ch_idx
+  ch_names <- sel$ch_names
 
-  ch_names <- all_channel_names[ch_idx]
+  # --- 4b. Assemble hierarchical metadata for the *loaded* channels ------
+  base_px <- parsed$image_info$scan_resolution$base_pixel_size_um
+  meta <- .single_scene_metadata(
+    slide      = parsed$slide,
+    image_info = parsed$image_info,
+    channels   = channels_meta[ch_idx],
+    scales     = .build_scales(n_lev, base_px),
+    format     = fmt,
+    raw_xml    = parsed$raw_xml
+  )
 
   # --- 5. Read all IFD page layouts (fast: no pixel data) ---------------
   message("Reading IFD page layouts ...")
@@ -291,7 +329,6 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
       for (k in seq_along(ch_idx)) arr[, , k] <- pg
     }
     dimnames(arr) <- list(NULL, NULL, ch_names)
-    meta$selected_channels <- ch_names; meta$width <- w; meta$height <- h
     return(.new_QPTIFFImage(arr, meta))
   }
 
@@ -324,7 +361,6 @@ read_qptiff <- function(path, channels = NULL, level = 1L,
     arr[, , k] <- pg
   }
   dimnames(arr) <- list(NULL, NULL, ch_names)
-  meta$selected_channels <- ch_names; meta$width <- w; meta$height <- h
   .new_QPTIFFImage(arr, meta)
 }
 
@@ -425,11 +461,11 @@ print.QPTIFFImage <- function(x, ...) {
     cat("  Names     :", paste(head(chs, 6L), collapse = ", "),
         if (length(chs) > 6L) "..." else "", "\n")
   if (!is.null(m)) {
-    cat("  Format    :", m$format %||% "unknown", "\n")
-    if (!is.null(m$image_info$pixel_size_um))
-      cat("  Pixel size:", m$image_info$pixel_size_um, "um\n")
-    if (!is.null(m$n_levels))
-      cat("  Levels    :", m$n_levels, "\n")
+    cat("  Format    :", qpi_format(m) %||% "unknown", "\n")
+    px <- qpi_pixel_size_um(m)
+    if (!is.null(px))
+      cat("  Pixel size:", px, "um\n")
+    cat("  Levels    :", qpi_n_levels(m), "\n")
   }
   if (!is.null(br))
     cat("  bgnorm    : yes (", length(br), " channel(s))\n", sep = "")
@@ -732,41 +768,41 @@ as.matrix.QPTIFFImage <- function(x, ...) {
 
 #' Access the metadata embedded in a QPTIFFImage
 #'
-#' Retrieves the named list of slide / image / channel metadata stored inside
-#' a \code{\link{QPTIFFImage}}.  The generic falls back to
+#' Retrieves the \code{\link{QPTIFFMetadata}} object (an OME-organised
+#' hierarchy of slide / image / channel / scale metadata) stored inside a
+#' \code{\link{QPTIFFImage}}.  The generic falls back to
 #' \code{\link[S4Vectors]{metadata}} for S4 objects such as
 #' \code{SummarizedExperiment}, so \code{metadata(img)} and
 #' \code{metadata(spe)} both work when bgnormR is loaded.
 #'
-#' The returned list typically contains:
+#' The returned object mirrors the OME hierarchy:
 #' \describe{
-#'   \item{\code{format}}{One of \code{"brightfield"}, \code{"polaris_scanband"},
-#'     or \code{"fusion_paged"}.}
-#'   \item{\code{channels}}{A list of per-channel lists, each with fields
-#'     \code{name} (protein name, dye suffix removed), \code{fluorophore}
-#'     (parsed from the \code{<Fluorophore>} XML tag), \code{dye_from_name}
-#'     (the dye suffix that was stripped from the compound biomarker name),
-#'     \code{exposure_time_us}, \code{emission_wavelength_nm}, etc.}
-#'   \item{\code{image_info}}{Physical image properties (pixel size, etc.).}
-#'   \item{\code{n_levels}}{Number of pyramid resolution levels.}
+#'   \item{\code{slide}}{Slide-constant identity (id, barcode, operator, ...).}
+#'   \item{\code{images}}{One scene per distinct image, each with
+#'     \code{image_info} (optics, camera, scan_resolution), \code{channels}
+#'     (per-channel \code{name}, \code{fluorophore}, \code{dye_from_name},
+#'     \code{exposure_time_us}, wavelengths, \code{color_rgb}, ...) and
+#'     \code{scales} (per pyramid level).}
+#'   \item{\code{acquisition_format}}{One of \code{"brightfield"},
+#'     \code{"polaris_scanband"}, \code{"fusion_paged"}, \code{"ome_tiff"},
+#'     \code{"ome_zarr"}, or \code{"unknown"}.}
 #' }
+#' Use the accessors (\code{\link{qpi_format}}, \code{\link{qpi_channels}},
+#' \code{\link{qpi_pixel_size_um}}, \code{\link{channel_table}}, ...) rather
+#' than indexing the nested list directly.
 #'
 #' @param x A \code{\link{QPTIFFImage}}.
 #' @param ... Unused.
-#' @return A named list of metadata.
+#' @return A \code{\link{QPTIFFMetadata}} object (a named list).
 #'
 #' @export
 #' @examples
 #' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' meta <- metadata(img)
-#' meta$format
-#' # Per-channel dye information
-#' ch_meta <- meta$channels
-#' data.frame(
-#'   protein = sapply(ch_meta, `[[`, "name"),
-#'   dye     = sapply(ch_meta, function(ch) ch$dye_from_name %||% NA_character_)
-#' )
+#' qpi_format(meta)
+#' # Per-channel dye information as a tidy table
+#' channel_table(meta)[, c("name", "fluorophore", "dye_from_name")]
 metadata <- function(x, ...) UseMethod("metadata")
 
 #' @rdname metadata
@@ -873,7 +909,7 @@ metadata.default <- function(x, ...) {
   image_info <- list()
   channels   <- list()
 
-  empty <- function() list(slide = slide, image_info = image_info,
+  empty <- function() list(slide = .new_slide_info(), image_info = .new_image_info(),
                            channels = channels, format = .QPTIFF_UNK,
                            raw_xml = xml_str %||% "")
 
@@ -1015,12 +1051,55 @@ metadata.default <- function(x, ...) {
   }
 
   list(
-    slide      = slide,
-    image_info = image_info,
+    slide      = do.call(.new_slide_info, slide),
+    image_info = .nest_image_info(image_info),
     channels   = channels,
     format     = fmt,
     raw_xml    = xml_str
   )
+}
+
+# ---- Reorganise a flat QPI image_info into the nested ImageInfo schema -----
+#
+# The QPI parser accumulates image-level fields in a flat list; here we route
+# them into the canonical ImageInfo { camera, scan_resolution } shape.  Fields
+# with no schema home (lamp_type, compression, coverslip_thickness, ...) are
+# preserved under image_info$extra so nothing is silently dropped.
+
+#' @keywords internal
+.nest_image_info <- function(flat) {
+  cam <- flat$camera %||% list()
+  camera <- .new_camera_info(
+    camera_name = cam$camera_name, camera_type = cam$camera_type,
+    gain = cam$gain, bit_depth = cam$bit_depth, binning = cam$binning
+  )
+  scan_res <- .new_scan_resolution(
+    magnification      = flat$magnification,
+    objective_name     = flat$objective_name,
+    binning            = flat$binning,
+    base_pixel_size_um = flat$pixel_size_um
+  )
+  ii <- .new_image_info(
+    image_type        = flat$image_type,
+    objective         = flat$objective,
+    bf_lamp_type      = flat$bf_lamp_type,
+    scan_profile_name = flat$scan_profile_name,
+    scan_mode         = flat$scan_mode,
+    is_tma            = flat$is_tma,
+    opal_kit_type     = flat$opal_kit_type,
+    xposition_um      = flat$xposition_um,
+    yposition_um      = flat$yposition_um,
+    camera            = camera,
+    scan_resolution   = scan_res
+  )
+  used   <- c("image_type", "objective", "bf_lamp_type", "scan_profile_name",
+              "scan_mode", "is_tma", "opal_kit_type", "xposition_um",
+              "yposition_um", "camera", "magnification", "objective_name",
+              "binning", "pixel_size_um", "scale_factor", "scale_factor_unit")
+  extras <- flat[setdiff(names(flat), used)]
+  extras <- extras[!vapply(extras, is.null, logical(1L))]
+  if (length(extras) > 0L) ii$extra <- extras
+  ii
 }
 
 # ---- Format detection  (== _detect_format) --------------------------------

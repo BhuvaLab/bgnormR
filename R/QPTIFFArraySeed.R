@@ -55,7 +55,7 @@ setClass("QPTIFFArraySeed", representation(
   .dimnames    = "list",
   page_layouts = "list",
   dtype        = "character",
-  metadata     = "list",
+  metadata     = "ANY",
   level        = "integer"
 ))
 

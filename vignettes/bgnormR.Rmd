@@ -85,6 +85,18 @@ names(img)   # five-plex panel
 dim(img)     # height × width × channels
 ```
 
+The same function also reads standard **OME-TIFF** and **OME-Zarr** (OME-NGFF)
+images, auto-detecting the container from the path (OME-Zarr requires the
+`Rarr` package).  Rich per-channel and slide metadata is organised into an
+OME-style `QPTIFFMetadata` object, available via `metadata()` and summarised as
+a tidy table by `channel_table()`:
+
+```{r metadata}
+meta <- metadata(img)
+qpi_format(meta)     # e.g. "fusion_paged", "ome_tiff", "ome_zarr"
+channel_table(meta)[, c("name", "fluorophore", "exposure_time_us")]
+```
+
 The native, Java-free TIFF/QPTIFF reader and writer implemented here was
 translated from the [bioio-tifffile fork](https://github.com/rtubelleza/bioio-tifffile/tree/feature/read-qptiffs-rich)
 by Rafael Tubelleza.

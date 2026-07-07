@@ -1,3 +1,10 @@
+# bgnormR 0.99.3
+
+## New Features
+* `read_qptiff()` now auto-detects and reads **OME-TIFF** and **OME-Zarr** (OME-NGFF) images in addition to QPTIFF. OME-TIFF channel names are read from the `<Channel Name="...">` attributes of the OME-XML; OME-Zarr stores are read (lazily, via a new `OMEZarrArraySeed` DelayedArray backend) using the optional `Rarr` package, with channel names and colours taken from `omero.channels`.
+* Image metadata is now returned as a `QPTIFFMetadata` object - an OME-organised hierarchy (`slide` / `images[]` -> `image_info` / `channels[]` / `scales[]`) - with accessors `qpi_format()`, `qpi_channels()`, `qpi_channel_names()`, `qpi_pixel_size_um()`, `qpi_n_levels()`, `qpi_is_brightfield()`, and a tidy `channel_table()`.
+* `write_qptiff()` now emits richer OME-TIFF metadata - physical pixel size, per-channel fluorophore / colour / emission & excitation wavelengths, per-channel exposure `<Plane>` elements, and a `qpi://vectra` `MapAnnotation` carrying PerkinElmer-specific fields - so a read -> write -> read round trip preserves this metadata. Files continue to declare `SizeC` channels (with `SizeZ = SizeT = 1`) so viewers such as QuPath read the pages as channels rather than Z/T slices.
+
 # bgnormR 0.99.1
 
 ## Improvements

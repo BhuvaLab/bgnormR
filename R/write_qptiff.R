@@ -77,6 +77,11 @@ write_qptiff <- function(x, path) {
 
   transform <- if (is_adjusted) "2^x" else "none"
 
+  # Rich per-channel + slide/image metadata for the OME-XML header, aligned
+  # positionally to the loaded channels by name.
+  meta    <- attr(x, "metadata")
+  ch_meta <- .match_channel_meta(meta, chs)
+
   # Extract 3D array (materialises lazy images)
   arr <- as.array.QPTIFFImage(x)
 
@@ -120,7 +125,8 @@ write_qptiff <- function(x, path) {
   # embedded in the OME root as no-namespace elements so read_qptiff still
   # recovers it.
   descs <- vapply(desc_lists, .desc_to_string, character(1L))
-  descs[1L] <- .build_ome_description(chs, H, W, C, desc_lists[[1L]])
+  descs[1L] <- .build_ome_description(chs, H, W, C, desc_lists[[1L]],
+                                      meta = meta, ch_meta = ch_meta)
 
   .write_tiff_binary(path, mats, descs, H, W)
   invisible(path)
@@ -135,12 +141,25 @@ write_qptiff <- function(x, path) {
 # foreign-namespace elements, while read_qptiff's direct-child XPath lookups
 # still find them, preserving the round-trip for channel 0.
 
-.build_ome_description <- function(chs, H, W, C, ch0_desc_list) {
+.build_ome_description <- function(chs, H, W, C, ch0_desc_list,
+                                   meta = NULL, ch_meta = NULL) {
   ns <- "http://www.openmicroscopy.org/Schemas/OME/2016-06"
+  if (is.null(ch_meta)) ch_meta <- vector("list", C)
 
+  px_um <- qpi_pixel_size_um(meta)
+  phys  <- if (!is.null(px_um))
+    sprintf(' PhysicalSizeX="%s" PhysicalSizeXUnit="\u00b5m" PhysicalSizeY="%s" PhysicalSizeYUnit="\u00b5m"',
+            px_um, px_um)
+  else ""
+
+  # Per-channel <Channel> elements: Name + any rich fields we hold.
   channels <- paste0(vapply(seq_len(C), function(k)
-    sprintf('<Channel ID="Channel:0:%d" Name="%s" SamplesPerPixel="1"/>',
-            k - 1L, .xml_escape(chs[k])),
+    .ome_channel_element(k - 1L, chs[k], ch_meta[[k]]),
+    character(1L)), collapse = "")
+
+  # Per-channel <Plane> elements carry exposure time (Z=T=0).
+  planes <- paste0(vapply(seq_len(C), function(k)
+    .ome_plane_element(k - 1L, ch_meta[[k]]),
     character(1L)), collapse = "")
 
   tiffdata <- paste0(vapply(seq_len(C), function(k)
@@ -148,19 +167,148 @@ write_qptiff <- function(x, path) {
             k - 1L, k - 1L),
     character(1L)), collapse = "")
 
+  # PerkinElmer-specific fields with no OME equivalent -> qpi://vectra map.
+  annotation <- .qpi_map_annotation(meta, ch_meta, C)
+  ann_ref    <- if (nzchar(annotation)) '<AnnotationRef ID="Annotation:0"/>' else ""
+
+  img_name <- .xml_escape(meta$images[[1L]]$image_info$scan_profile_name %||% "bgnormR")
+
   paste0(
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<OME xmlns="', ns, '" ',
     'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ',
     'xsi:schemaLocation="', ns, ' ', ns, '/ome.xsd">',
-    '<Image ID="Image:0" Name="bgnormR">',
+    '<Image ID="Image:0" Name="', img_name, '">',
     '<Pixels ID="Pixels:0" DimensionOrder="XYCZT" Type="uint16" ',
     'SizeX="', W, '" SizeY="', H, '" SizeC="', C, '" SizeZ="1" SizeT="1" ',
-    'Interleaved="false" BigEndian="false" SignificantBits="16">',
-    channels, tiffdata,
-    '</Pixels></Image>',
+    'Interleaved="false" BigEndian="false" SignificantBits="16"', phys, '>',
+    channels, planes, tiffdata,
+    '</Pixels>', ann_ref, '</Image>',
+    annotation,
     .desc_body(ch0_desc_list, ns_reset = TRUE),
     '</OME>'
+  )
+}
+
+# ---- Internal: OME <Channel> element from per-channel metadata ------------
+
+.ome_channel_element <- function(index, name, cm) {
+  cm <- cm %||% list()
+  attrs <- sprintf(' ID="Channel:0:%d" Name="%s"', index, .xml_escape(name))
+  if (!is.null(cm$fluorophore))
+    attrs <- paste0(attrs, sprintf(' Fluor="%s"', .xml_escape(cm$fluorophore)))
+  col <- .rgb_to_ome_color(cm$color_rgb)
+  if (!is.null(col))
+    attrs <- paste0(attrs, sprintf(' Color="%s"', col))
+  if (!is.null(cm$emission_wavelength_nm))
+    attrs <- paste0(attrs, sprintf(' EmissionWavelength="%s" EmissionWavelengthUnit="nm"',
+                                   cm$emission_wavelength_nm))
+  if (!is.null(cm$excitation_wavelength_nm))
+    attrs <- paste0(attrs, sprintf(' ExcitationWavelength="%s" ExcitationWavelengthUnit="nm"',
+                                   cm$excitation_wavelength_nm))
+  paste0('<Channel', attrs, ' SamplesPerPixel="1"/>')
+}
+
+# ---- Internal: OME <Plane> element (exposure) -----------------------------
+
+.ome_plane_element <- function(index, cm) {
+  cm <- cm %||% list()
+  if (is.null(cm$exposure_time_us)) return("")
+  sprintf('<Plane TheZ="0" TheT="0" TheC="%d" ExposureTime="%s" ExposureTimeUnit="\u00b5s"/>',
+          index, cm$exposure_time_us)
+}
+
+# ---- Internal: encode c(r, g, b) as an OME signed-int32 RGBA colour --------
+
+.rgb_to_ome_color <- function(rgb) {
+  if (is.null(rgb) || length(rgb) != 3L || anyNA(rgb)) return(NULL)
+  u <- rgb[1L] * 2^24 + rgb[2L] * 2^16 + rgb[3L] * 2^8 + 255   # alpha = 255
+  if (u >= 2^31) u <- u - 2^32                                  # to signed int32
+  format(as.integer(u), scientific = FALSE)
+}
+
+# ---- Internal: match loaded channel names to metadata channels ------------
+
+.match_channel_meta <- function(meta, chs) {
+  if (is.null(meta)) return(vector("list", length(chs)))
+  cm <- qpi_channels(meta)
+  if (length(cm) == 0L) return(vector("list", length(chs)))
+  cm_names <- vapply(cm, function(c) c$name %||% "", character(1L))
+  # Consume each metadata entry at most once so repeated channel names (e.g.
+  # a marker imaged in several cycles) map to distinct metadata entries in
+  # order rather than all collapsing onto the first match.
+  used <- logical(length(cm))
+  out  <- vector("list", length(chs))
+  for (j in seq_along(chs)) {
+    i <- which(cm_names == chs[j] & !used)
+    if (length(i) == 0L) next          # out[[j]] stays NULL -> no metadata
+    used[i[1L]] <- TRUE
+    out[[j]]    <- cm[[i[1L]]]
+  }
+  out
+}
+
+# ---- Internal: qpi://vectra MapAnnotation (round-trips PerkinElmer fields) --
+#
+# Mirrors qptiff_ome.py: image-level keys plus per-channel ch<N>_* keys for
+# fields that have no canonical OME equivalent.  Keyed by *written* channel
+# position (0..C-1) to align with the Channel:0:k IDs emitted above.
+
+.qpi_map_annotation <- function(meta, ch_meta, C) {
+  if (is.null(meta)) return("")
+  sl <- meta$slide %||% list()
+  ii <- meta$images[[1L]]$image_info %||% list()
+  cam <- ii$camera %||% list()
+
+  kv <- list(
+    description_version  = sl$description_version,
+    acquisition_software = sl$acquisition_software,
+    identifier           = sl$identifier,
+    slide_id             = sl$slide_id,
+    barcode              = sl$barcode,
+    study_name           = sl$study_name,
+    computer_name        = sl$computer_name,
+    datetime             = sl$datetime,
+    image_type           = ii$image_type,
+    scan_profile_name    = ii$scan_profile_name,
+    scan_mode            = ii$scan_mode,
+    is_tma               = ii$is_tma,
+    opal_kit_type        = ii$opal_kit_type,
+    objective            = ii$objective,
+    bf_lamp_type         = ii$bf_lamp_type,
+    acquisition_format   = qpi_format(meta),
+    camera_name          = cam$camera_name,
+    camera_gain          = cam$gain,
+    camera_bit_depth     = cam$bit_depth,
+    channel_count        = C
+  )
+
+  # Per-channel vendor fields (no OME home).
+  ch_fields <- c("is_unmixed_component", "signal_units", "objective",
+                 "autofluorescence_subtracted", "responsivity",
+                 "responsivity_filter_id", "responsivity_date",
+                 "responsivity_filter_name", "excitation_filter_part_no",
+                 "emission_filter_part_no", "bit_depth", "offset_counts",
+                 "camera_orientation", "roi_x", "roi_y", "roi_width", "roi_height")
+  for (k in seq_len(C)) {
+    cm <- ch_meta[[k]] %||% list()
+    for (f in ch_fields)
+      if (!is.null(cm[[f]])) kv[[sprintf("ch%d_%s", k - 1L, f)]] <- cm[[f]]
+  }
+
+  kv <- kv[!vapply(kv, is.null, logical(1L))]
+  if (length(kv) == 0L) return("")
+
+  entries <- paste0(vapply(names(kv), function(k)
+    sprintf('<M K="%s">%s</M>', .xml_escape(k),
+            .xml_escape(as.character(kv[[k]]))),
+    character(1L)), collapse = "")
+
+  paste0(
+    '<StructuredAnnotations>',
+    '<MapAnnotation ID="Annotation:0" Namespace="qpi://vectra"><Value>',
+    entries,
+    '</Value></MapAnnotation></StructuredAnnotations>'
   )
 }
 
@@ -235,8 +383,9 @@ write_qptiff <- function(x, path) {
   n_tags        <- 11L
   ifd_bytes     <- 2L + n_tags * 12L + 4L  # 138 bytes
 
-  # Null-terminated description bytes per page
-  desc_raw  <- lapply(descs, function(s) c(charToRaw(s), as.raw(0L)))
+  # Null-terminated description bytes per page (UTF-8; the OME header may hold
+  # \u00b5m / \u00b5s unit symbols).
+  desc_raw  <- lapply(descs, function(s) c(charToRaw(enc2utf8(s)), as.raw(0L)))
   desc_size <- vapply(desc_raw, length, integer(1L))
 
   # Pre-compute offsets
