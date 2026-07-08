@@ -19,7 +19,7 @@ Collapses the primary scene's channel list into a one-row-per-channel
 \code{color_rgb} are rendered as strings.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 channel_table(metadata(img))
 }

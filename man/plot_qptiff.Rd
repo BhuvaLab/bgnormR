@@ -82,7 +82,7 @@ the cell count exceeds \code{large_data_threshold} and \pkg{scattermore} is
 installed, the scatter layer is rasterised automatically.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 plot_qptiff(img, markers = c("PanCK", "CD20"))
 

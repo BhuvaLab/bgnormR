@@ -43,7 +43,7 @@ Use the accessors (\code{\link{qpi_format}}, \code{\link{qpi_channels}},
 than indexing the nested list directly.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 meta <- metadata(img)
 qpi_format(meta)

@@ -16,6 +16,6 @@ Character vector of channel names (possibly empty).
 Channel names of the primary scene
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 qpi_channel_names(metadata(read_qptiff(path)))
 }

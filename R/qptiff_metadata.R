@@ -247,7 +247,7 @@ NULL
 #' @return Character scalar, or \code{NULL}.
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' meta <- metadata(read_qptiff(path))
 #' qpi_format(meta)
 qpi_format <- function(meta) {
@@ -260,7 +260,7 @@ qpi_format <- function(meta) {
 #' @return A scene list, or \code{NULL} when no scenes are present.
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' scene <- qpi_primary_scene(metadata(read_qptiff(path)))
 #' scene$image_info$image_type
 qpi_primary_scene <- function(meta) {
@@ -276,7 +276,7 @@ qpi_primary_scene <- function(meta) {
 #' @return A list of per-channel metadata lists (possibly empty).
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' length(qpi_channels(metadata(read_qptiff(path))))
 qpi_channels <- function(meta) {
   sc <- qpi_primary_scene(meta)
@@ -289,7 +289,7 @@ qpi_channels <- function(meta) {
 #' @return Character vector of channel names (possibly empty).
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' qpi_channel_names(metadata(read_qptiff(path)))
 qpi_channel_names <- function(meta) {
   ch <- qpi_channels(meta)
@@ -302,7 +302,7 @@ qpi_channel_names <- function(meta) {
 #' @return Numeric scalar, or \code{NULL}.
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' qpi_pixel_size_um(metadata(read_qptiff(path)))
 qpi_pixel_size_um <- function(meta) {
   sc <- qpi_primary_scene(meta)
@@ -315,7 +315,7 @@ qpi_pixel_size_um <- function(meta) {
 #' @return Integer scalar (at least 1).
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' qpi_n_levels(metadata(read_qptiff(path)))
 qpi_n_levels <- function(meta) {
   sc <- qpi_primary_scene(meta)
@@ -328,7 +328,7 @@ qpi_n_levels <- function(meta) {
 #' @return Logical scalar.
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' qpi_is_brightfield(metadata(read_qptiff(path)))
 qpi_is_brightfield <- function(meta) {
   fmt <- qpi_format(meta)
@@ -348,7 +348,7 @@ qpi_is_brightfield <- function(meta) {
 #'   image has no channel metadata.
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' channel_table(metadata(img))
 channel_table <- function(meta) {

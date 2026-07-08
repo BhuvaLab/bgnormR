@@ -16,7 +16,7 @@ Character scalar, or \code{NULL}.
 Acquisition format of a parsed image
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 meta <- metadata(read_qptiff(path))
 qpi_format(meta)
 }

@@ -16,6 +16,6 @@ Logical scalar.
 Is the primary scene a brightfield (RGB) image?
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 qpi_is_brightfield(metadata(read_qptiff(path)))
 }

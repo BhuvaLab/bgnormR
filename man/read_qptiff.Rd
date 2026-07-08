@@ -65,7 +65,7 @@ translated from the
 by Rafael Tubelleza.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 dim(img)                      # c(H, W, n_channels)
 names(img)                    # channel names

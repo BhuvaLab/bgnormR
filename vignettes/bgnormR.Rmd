@@ -68,11 +68,11 @@ library(ggplot2)
 
 The package includes a cropped head-and-neck cancer (HNC) tissue section
 imaged on an Akoya PhenoCycler-Fusion platform.  The file ships at
-`inst/extdata/PA_HNC_sample.qptiff` and contains five markers across a
+`inst/extdata/PA_HNC_sample.ome.tiff` and contains five markers across a
 550 × 800 pixel region.
 
 ```{r load_sample}
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 img
 ```

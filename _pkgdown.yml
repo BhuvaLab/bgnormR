@@ -9,5 +9,5 @@ navbar:
   components:
     bgnormpy:
       text: bgnormpy
-      href: https://bhuvalab.github.io/bgnormpy
+      href: https://github.com/BhuvaLab/bgnormPy
       aria-label: bgnormpy Python package documentation

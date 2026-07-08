@@ -62,7 +62,7 @@
 #'
 #' \donttest{
 #' # Real tissue image shipped with the package
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' res  <- bgnorm_pixels(img, sample_prop = 0.1)
 #' bgnorm_results(res)[["PanCK"]]    # per-channel model summary

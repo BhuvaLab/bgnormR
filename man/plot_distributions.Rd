@@ -35,7 +35,7 @@ a \code{\link[SummarizedExperiment]{SummarizedExperiment}} /
 in \code{colData} and produce facets by \code{sample_id x marker}.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img  <- read_qptiff(path)
 res  <- bgnorm_pixels(img, sample_prop = 0.1)
 plot_distributions(res)

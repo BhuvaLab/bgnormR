@@ -16,6 +16,6 @@ A list of per-channel metadata lists (possibly empty).
 Per-channel metadata of the primary scene
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 length(qpi_channels(metadata(read_qptiff(path))))
 }

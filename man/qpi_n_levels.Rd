@@ -16,6 +16,6 @@ Integer scalar (at least 1).
 Number of pyramid levels of the primary scene
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 qpi_n_levels(metadata(read_qptiff(path)))
 }

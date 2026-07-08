@@ -16,7 +16,7 @@ A scene list, or \code{NULL} when no scenes are present.
 Primary scene of a parsed image (FullResolution if present, else the first)
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 scene <- qpi_primary_scene(metadata(read_qptiff(path)))
 scene$image_info$image_type
 }

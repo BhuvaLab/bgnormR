@@ -16,6 +16,6 @@ Numeric scalar, or \code{NULL}.
 Physical pixel size (microns) of the primary scene, full resolution
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 qpi_pixel_size_um(metadata(read_qptiff(path)))
 }

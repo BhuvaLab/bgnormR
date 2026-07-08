@@ -89,7 +89,7 @@
 #' @importFrom DelayedArray DelayedArray
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' dim(img)                      # c(H, W, n_channels)
 #' names(img)                    # channel names
@@ -485,7 +485,7 @@ print.QPTIFFImage <- function(x, ...) {
 #' @seealso \code{\link{bgnorm_pixels}}
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' img <- read_qptiff(path)
 #' adj <- bgnorm_pixels(img, markers = names(img)[1])
 #' bgnorm_results(adj)
@@ -797,7 +797,7 @@ as.matrix.QPTIFFImage <- function(x, ...) {
 #'
 #' @export
 #' @examples
-#' path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+#' path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 #' img  <- read_qptiff(path)
 #' meta <- metadata(img)
 #' qpi_format(meta)

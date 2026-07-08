@@ -21,7 +21,7 @@ Returns the named list of \code{\link{BgnormResult}} objects attached to a
 the image has not been background-normalised.
 }
 \examples{
-path <- system.file("extdata", "PA_HNC_sample.qptiff", package = "bgnormR")
+path <- system.file("extdata", "PA_HNC_sample.ome.tiff", package = "bgnormR")
 img <- read_qptiff(path)
 adj <- bgnorm_pixels(img, markers = names(img)[1])
 bgnorm_results(adj)
