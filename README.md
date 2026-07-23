@@ -89,9 +89,9 @@ metadata(se)$bgnorm_results[["CD20"]]$jsd
 
 | Function | Description |
 |---|---|
-| `read_qptiff()` | Read Akoya QPTIFF images (eager or lazy/DelayedArray) |
-| `write_qptiff()` | Write a `QPTIFFImage` to multi-page 16-bit TIFF with embedded metadata |
-| `bgnorm_pixels()` | Pixel-level 3-component GMM correction on a `QPTIFFImage` |
+| `read_qptiff()` | Read QPTIFF, OMETIFF or OMEZarr images (eager or lazy/DelayedArray) |
+| `write_qptiff()` | Write a OMETIFF image to multi-page 16-bit TIFF with embedded metadata |
+| `bgnorm_pixels()` | Pixel-level 3-component GMM correction on a OMETIFF image |
 | `bgnorm_cells()` | Cell-level 2-component GMM correction on a numeric vector |
 | `bgnorm_sce()` | Apply `bgnorm_cells` to every marker in a `SummarizedExperiment` |
 | `qc_summary()` | Per-marker JSD and signal proportion table |
