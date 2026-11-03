@@ -8,7 +8,7 @@
 \description{
 Implements \emph{bgnorm}, a generative statistical framework for
 background correction, normalisation, and quality control in multiplex
-spatial proteomics (Kharbanda et al. 2025).
+spatial proteomics (Kharbanda and Tubelleza et al. 2026).
 }
 \details{
 The framework models log-transformed fluorescence intensities as a
@@ -44,9 +44,9 @@ Useful links:
 Authors:
 \itemize{
   \item Dharmesh D. Bhuva \email{dhrmsh36@gmail.com} (\href{https://orcid.org/0000-0002-6398-9157}{ORCID})
-  \item Rafael Tubelleza
-  \item Malvika Kharbanda
-  \item Agus Salim
+  \item Rafael Tubelleza (\href{https://orcid.org/0009-0007-1414-547X}{ORCID})
+  \item Malvika Kharbanda (\href{https://orcid.org/0000-0001-9726-3023}{ORCID})
+  \item Agus Salim (\href{https://orcid.org/0000-0003-3999-7701}{ORCID})
 }
 
 }

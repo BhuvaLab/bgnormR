@@ -1,18 +1,37 @@
-citEntry(
-  entry    = "Article",
-  title    = "bgnorm: a generative framework for background correction and normalisation of multiplex spatial proteomics",
-  author   = personList(
-    person("Malvika", "Kharbanda"),
-    person("Rafael", "Tubelleza"),
-    person("Agus", "Salim"),
-    person("Dharmesh D.", "Bhuva")
+bibentry(
+  bibtype  = "Article",
+  title    = "bgnorm: A Generative Statistical Framework for Background Correction, Normalisation, and Quality Control in Multiplex Spatial Proteomics",
+  author   = c(
+    person("Malvika", "Kharbanda",
+           comment = c(ORCID = "0000-0001-9726-3023")),
+    person("Rafael", "Tubelleza",
+           comment = c(ORCID = "0009-0007-1414-547X")),
+    person("Yuqi", "Tan",
+           comment = c(ORCID = "0000-0002-7200-3222")),
+    person("Chin Wee", "Tan",
+           comment = c(ORCID = "0000-0001-9695-7218")),
+    person("Cooper", "Janke",
+           comment = c(ORCID = "0009-0002-0544-8966")),
+    person("Ismail", "Sebina",
+           comment = c(ORCID = "0000-0003-3232-3472")),
+    person("Gabrielle T.", "Belz",
+           comment = c(ORCID = "0000-0002-9660-9587")),
+    person("Arutha", "Kulasinghe",
+           comment = c(ORCID = "0000-0003-3224-7350")),
+    person("Agus", "Salim",
+           comment = c(ORCID = "0000-0003-3999-7701")),
+    person("Dharmesh D.", "Bhuva",
+           comment = c(ORCID = "0000-0002-6398-9157"))
   ),
   journal  = "bioRxiv",
-  year     = "2025",
-  doi      = "10.1101/2025.placeholder",
+  year     = "2026",
+  doi      = "10.64898/2026.08.05.743141",
+  url      = "https://www.biorxiv.org/content/10.64898/2026.08.05.743141v1",
   textVersion = paste(
-    "Kharbanda M, Tubelleza R, Salim A, Bhuva DD (2025).",
-    "bgnorm: a generative framework for background correction and normalisation",
-    "of multiplex spatial proteomics. bioRxiv."
+    "Kharbanda M, Tubelleza R, Tan Y, Tan CW, Janke C, Sebina I, Belz GT,",
+    "Kulasinghe A, Salim A, Bhuva DD (2026).",
+    "bgnorm: A Generative Statistical Framework for Background Correction,",
+    "Normalisation, and Quality Control in Multiplex Spatial Proteomics.",
+    "bioRxiv. doi:10.64898/2026.08.05.743141"
   )
 )

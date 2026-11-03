@@ -1,10 +1,10 @@
-# bgnormR
+# bgnormR <img src="man/figures/logo.png" align="right" height="139" alt="bgnormR hex sticker" />
 
 <!-- badges: start -->
 [![R-CMD-check-bioc](https://github.com/BhuvaLab/bgnormR/actions/workflows/check-bioc.yml/badge.svg)](https://github.com/BhuvaLab/bgnormR/actions/workflows/check-bioc.yml)
 <!-- badges: end -->
 
-**bgnormR** implements *bgnorm* (Kharbanda, Tubelleza *et al.* 2025), a generative
+**bgnormR** implements *bgnorm* (Kharbanda and Tubelleza *et al.* 2026), a generative
 statistical framework for background correction, normalisation, and quality control of
 multiplex spatial proteomics data from Akoya PhenoCycler-Fusion, Cell DIVE, IMC, and CosMx
 platforms.  The package includes a **Java-free** reader and writer for Akoya QPTIFF images
@@ -102,9 +102,10 @@ metadata(se)$bgnorm_results[["CD20"]]$jsd
 
 ## Citation
 
-Kharbanda M, Tubelleza R, Salim A, Bhuva DD (2025). *bgnorm: a generative framework for
-background correction and normalisation of multiplex spatial proteomics.* bioRxiv.
-<https://doi.org/10.1101/2025.placeholder>
+Kharbanda M, Tubelleza R, Tan Y, Tan CW, Janke C, Sebina I, Belz GT, Kulasinghe A,
+Salim A, Bhuva DD (2026). *bgnorm: A Generative Statistical Framework for Background
+Correction, Normalisation, and Quality Control in Multiplex Spatial Proteomics.* bioRxiv.
+<https://doi.org/10.64898/2026.08.05.743141>
 
 ## License
 

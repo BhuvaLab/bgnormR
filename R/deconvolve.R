@@ -1,9 +1,9 @@
 #' Background deconvolution for a GMM-fitted intensity vector
 #'
-#' Implements the conditional-expectation deconvolution from Kharbanda et al.
-#' 2025.  Works for both the 3-component (pixel-level) and 2-component
-#' (cell-level) models by using the last two components (G-1 and G) as the
-#' background and signal pair:
+#' Implements the conditional-expectation deconvolution from Kharbanda and
+#' Tubelleza et al. 2026.  Works for both the 3-component (pixel-level) and
+#' 2-component (cell-level) models by using the last two components (G-1 and
+#' G) as the background and signal pair:
 #'
 #' \deqn{X_{\text{adj}}(x) = P(C=G \mid x) \Bigl[
 #'   (\mu_G - \mu_{G-1}) +

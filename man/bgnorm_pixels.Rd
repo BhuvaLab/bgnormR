@@ -56,8 +56,8 @@ processing to a subset.  Optionally runs channels in parallel via
 \pkg{BiocParallel}.
 }
 \details{
-The preprocessing, model, and deconvolution steps follow Kharbanda et al.
-2025:
+The preprocessing, model, and deconvolution steps follow Kharbanda and
+Tubelleza et al. 2026:
 \enumerate{
   \item Log2-transform: \eqn{I_{\log} = \log_2(I/c + 1)}.
   \item Fit a 3-component GMM via EM (mclust), filtering zeros and

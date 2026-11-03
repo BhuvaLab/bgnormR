@@ -24,6 +24,6 @@ A list with \code{means}, \code{sds}, \code{props}, and
 Orders components as background (1), non-specific/autofluorescence (2),
 and biological signal (3).  When the two highest-mean components are
 close, the one with the heavier right tail (higher 75th percentile) is
-designated signal, following Kharbanda et al. 2025.
+designated signal, following Kharbanda and Tubelleza et al. 2026.
 }
 \keyword{internal}

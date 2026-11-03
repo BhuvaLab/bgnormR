@@ -243,7 +243,7 @@
 #' Orders components as background (1), non-specific/autofluorescence (2),
 #' and biological signal (3).  When the two highest-mean components are
 #' close, the one with the heavier right tail (higher 75th percentile) is
-#' designated signal, following Kharbanda et al. 2025.
+#' designated signal, following Kharbanda and Tubelleza et al. 2026.
 #'
 #' @param means Numeric vector of component means.
 #' @param sds   Numeric vector of component standard deviations.

@@ -2,7 +2,7 @@
 #'
 #' Implements \emph{bgnorm}, a generative statistical framework for
 #' background correction, normalisation, and quality control in multiplex
-#' spatial proteomics (Kharbanda et al. 2025).
+#' spatial proteomics (Kharbanda and Tubelleza et al. 2026).
 #'
 #' The framework models log-transformed fluorescence intensities as a
 #' three-component Gaussian mixture representing:

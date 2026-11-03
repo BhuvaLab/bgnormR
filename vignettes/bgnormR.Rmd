@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-**bgnorm** (Kharbanda, Tubelleza *et al.* 2025) is a generative statistical
+**bgnorm** (Kharbanda and Tubelleza *et al.* 2026) is a generative statistical
 framework for background correction, normalisation, and quality control of
 multiplex spatial proteomics data, including data from the Akoya
 PhenoCycler-Fusion (formerly CODEX), Cell DIVE, IMC, and CosMx platforms.
@@ -211,7 +211,7 @@ qc_df
 ```
 
 JSD values below 0.1 indicate likely failed staining; values between 0.1 and
-0.2 warrant manual inspection (Kharbanda *et al.* 2025).
+0.2 warrant manual inspection (Kharbanda and Tubelleza *et al.* 2026).
 
 ## JSD heatmap
 
