@@ -39,14 +39,14 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Dharmesh D. Bhuva \email{dhrmsh36@gmail.com} (\href{https://orcid.org/0000-0002-6398-9157}{ORCID})
+\strong{Maintainer}: Dharmesh D. Bhuva \email{d.bhuva@uq.edu.au} (\href{https://orcid.org/0000-0002-6398-9157}{ORCID})
 
 Authors:
 \itemize{
-  \item Dharmesh D. Bhuva \email{dhrmsh36@gmail.com} (\href{https://orcid.org/0000-0002-6398-9157}{ORCID})
-  \item Rafael Tubelleza (\href{https://orcid.org/0009-0007-1414-547X}{ORCID})
-  \item Malvika Kharbanda (\href{https://orcid.org/0000-0001-9726-3023}{ORCID})
-  \item Agus Salim (\href{https://orcid.org/0000-0003-3999-7701}{ORCID})
+  \item Dharmesh D. Bhuva \email{d.bhuva@uq.edu.au} (\href{https://orcid.org/0000-0002-6398-9157}{ORCID})
+  \item Rafael Tubelleza \email{r.tubelleza@uq.edu.au} (\href{https://orcid.org/0009-0007-1414-547X}{ORCID})
+  \item Malvika Kharbanda \email{malvika.kharbanda@adelaide.edu.au} (\href{https://orcid.org/0000-0001-9726-3023}{ORCID})
+  \item Agus Salim \email{salim.a@unimelb.edu.au} (\href{https://orcid.org/0000-0003-3999-7701}{ORCID})
 }
 
 }

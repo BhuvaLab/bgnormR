@@ -76,6 +76,15 @@ setMethod("dimnames", "OMEZarrArraySeed", function(x) {
 #' @export
 setMethod("type", "OMEZarrArraySeed", function(x) x@dtype)
 
+#' @param object An \code{OMEZarrArraySeed}.
+#' @rdname OMEZarrArraySeed-class
+#' @export
+setMethod("show", "OMEZarrArraySeed", function(object) {
+  cat(.seed_summary(object, "OMEZarrArraySeed (on-disk OME-Zarr)", "Array",
+                    object@array_path),
+      sep = "\n")
+})
+
 #' Seed-contract methods for OMEZarrArraySeed
 #'
 #' @param x     An \code{OMEZarrArraySeed}.

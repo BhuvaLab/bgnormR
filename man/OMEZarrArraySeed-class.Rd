@@ -6,6 +6,7 @@
 \alias{dim,OMEZarrArraySeed-method}
 \alias{dimnames,OMEZarrArraySeed-method}
 \alias{type,OMEZarrArraySeed-method}
+\alias{show,OMEZarrArraySeed-method}
 \alias{extract_array,OMEZarrArraySeed-method}
 \title{Seed class for lazy on-disk OME-Zarr access}
 \usage{
@@ -15,10 +16,14 @@
 
 \S4method{type}{OMEZarrArraySeed}(x)
 
+\S4method{show}{OMEZarrArraySeed}(object)
+
 \S4method{extract_array}{OMEZarrArraySeed}(x, index)
 }
 \arguments{
 \item{x}{An \code{OMEZarrArraySeed}.}
+
+\item{object}{An \code{OMEZarrArraySeed}.}
 
 \item{index}{List of length 3; each element is \code{NULL} (all indices) or
 an integer vector of 1-based indices for that dimension.}

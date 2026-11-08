@@ -119,6 +119,36 @@ test_that("QPTIFFArraySeed slot names and types are correct", {
   expect_equal(type(seed), "integer")
 })
 
+test_that("QPTIFFArraySeed show() prints a compact summary", {
+  seed <- new("QPTIFFArraySeed",
+    filepath = "/tmp/test.qptiff", .dim = c(256L, 256L, 3L),
+    .dimnames = list(NULL, NULL, c("DAPI", "CD3", "CD8")),
+    page_layouts = list(list(), list(), list()),
+    dtype = "integer", metadata = list(), level = 2L
+  )
+  out <- capture.output(show(seed))
+  expect_match(out[1L], "^QPTIFFArraySeed")
+  expect_true(any(grepl("/tmp/test.qptiff", out, fixed = TRUE)))
+  expect_true(any(grepl("256 x 256 x 3", out, fixed = TRUE)))
+  expect_true(any(grepl("DAPI, CD3, CD8", out, fixed = TRUE)))
+  expect_true(any(grepl("level 2", out, fixed = TRUE)))
+  expect_lt(length(out), 10L)
+})
+
+test_that("OMEZarrArraySeed show() prints a compact summary", {
+  seed <- new("OMEZarrArraySeed",
+    array_path = "/tmp/img.ome.zarr/0", .dim = c(5L, 4L, 2L),
+    .dimnames = list(NULL, NULL, c("DAPI", "CD3")), dtype = "double",
+    axis_names = c("c", "y", "x"), zarr_channels = 1:2, divisor = 65535,
+    metadata = list()
+  )
+  out <- capture.output(show(seed))
+  expect_match(out[1L], "^OMEZarrArraySeed")
+  expect_true(any(grepl("/tmp/img.ome.zarr/0", out, fixed = TRUE)))
+  expect_true(any(grepl("5 x 4 x 2", out, fixed = TRUE)))
+  expect_lt(length(out), 10L)
+})
+
 test_that("QPTIFFArraySeed with all-NULL dimnames returns NULL dimnames", {
   seed <- new("QPTIFFArraySeed",
     filepath = "/tmp/x.tif", .dim = c(10L, 10L, 2L),

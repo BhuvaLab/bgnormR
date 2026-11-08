@@ -78,6 +78,28 @@ setMethod("dimnames", "QPTIFFArraySeed", function(x) {
 #' @export
 setMethod("type", "QPTIFFArraySeed", function(x) x@dtype)
 
+#' @param object A \code{QPTIFFArraySeed}.
+#' @rdname QPTIFFArraySeed-class
+#' @export
+setMethod("show", "QPTIFFArraySeed", function(object) {
+  cat(.seed_summary(object, "QPTIFFArraySeed (on-disk TIFF)", "File",
+                    object@filepath, paste("level", object@level)),
+      sep = "\n")
+})
+
+# Summary lines shared by the show() methods of the on-disk seed classes
+.seed_summary <- function(object, title, path_label, path, extra = NULL) {
+  d   <- dim(object)
+  chs <- dimnames(object)[[3L]]
+  c(title,
+    paste0("  ", formatC(path_label, width = -10L), ": ", path),
+    paste0("  Dimensions: ", paste(d, collapse = " x "), " (H x W x C)"),
+    if (!is.null(chs))
+      paste0("  Names     : ", paste(head(chs, 6L), collapse = ", "),
+             if (length(chs) > 6L) " ..."),
+    paste0("  Type      : ", paste(c(object@dtype, extra), collapse = ", ")))
+}
+
 #' Extract a sub-array from a QPTIFFArraySeed
 #'
 #' Called internally by the \pkg{DelayedArray} framework.  Reads only the

@@ -6,6 +6,7 @@
 \alias{dim,QPTIFFArraySeed-method}
 \alias{dimnames,QPTIFFArraySeed-method}
 \alias{type,QPTIFFArraySeed-method}
+\alias{show,QPTIFFArraySeed-method}
 \alias{extract_array,QPTIFFArraySeed-method}
 \title{Seed class for lazy on-disk QPTIFF access}
 \usage{
@@ -15,10 +16,14 @@
 
 \S4method{type}{QPTIFFArraySeed}(x)
 
+\S4method{show}{QPTIFFArraySeed}(object)
+
 \S4method{extract_array}{QPTIFFArraySeed}(x, index)
 }
 \arguments{
 \item{x}{A \code{QPTIFFArraySeed}.}
+
+\item{object}{A \code{QPTIFFArraySeed}.}
 
 \item{index}{List of length 3.  Each element is either \code{NULL} (all
 indices for that dimension) or a sorted integer vector of 1-based indices.}

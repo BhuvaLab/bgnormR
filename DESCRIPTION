@@ -1,16 +1,19 @@
 Package: bgnormR
 Type: Package
 Title: Background Normalisation for Multiplex Spatial Proteomics
-Version: 0.99.4
+Version: 0.99.5
 Authors@R: c(
     person("Dharmesh D.", "Bhuva", role = c("aut", "cre"),
-           email = "dhrmsh36@gmail.com",
+           email = "d.bhuva@uq.edu.au",
            comment = c(ORCID = "0000-0002-6398-9157")),
     person("Rafael", "Tubelleza", role = "aut",
+           email = "r.tubelleza@uq.edu.au",
            comment = c(ORCID = "0009-0007-1414-547X")),
     person("Malvika", "Kharbanda", role = "aut",
+           email = "malvika.kharbanda@adelaide.edu.au",
            comment = c(ORCID = "0000-0001-9726-3023")),
     person("Agus", "Salim", role = "aut",
+           email = "salim.a@unimelb.edu.au",
            comment = c(ORCID = "0000-0003-3999-7701")))
 Description: Implements bgnorm, a generative statistical framework for
     background correction, normalisation, and quality control in multiplex

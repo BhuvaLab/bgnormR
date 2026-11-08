@@ -721,6 +721,9 @@ test_that("read_qptiff reads a synthetic OME-Zarr store", {
   a[1, , ] <- 10L; a[2, , ] <- matrix(1:20, 5, 4)
   Rarr::write_zarr_array(a, file.path(store, "scale0", "image"),
                          chunk_dim = c(1, 5, 4))
+  # Rarr >= 2 requires the root group to exist before attributes are written
+  if (exists("write_zarr_group", asNamespace("Rarr")))
+    Rarr::write_zarr_group(store, "")
   Rarr::write_zarr_attributes(store, list(
     ome = list(
       version = "0.5",
